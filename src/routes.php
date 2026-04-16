@@ -55,16 +55,17 @@ $router->post('/admin/categories/:id/delete',    [AdminCategory::class,  'destro
 
 // Products
 $router->get( '/admin/products',                 [AdminProduct::class,   'index'],   ['admin']);
+
+// Bulk upload (must be above /admin/products/:id routes)
+$router->get( '/admin/products/bulk-upload',     [AdminBulkUpload::class, 'show'],   ['admin']);
+$router->post('/admin/products/bulk-upload',     [AdminBulkUpload::class, 'process'],['admin', 'csrf']);
+
 $router->get( '/admin/products/create',          [AdminProduct::class,   'create'],  ['admin']);
 $router->post('/admin/products',                 [AdminProduct::class,   'store'],   ['admin', 'csrf']);
 $router->get( '/admin/products/:id/edit',        [AdminProduct::class,   'edit'],    ['admin']);
 $router->post('/admin/products/:id',             [AdminProduct::class,   'update'],  ['admin', 'csrf']);
 $router->post('/admin/products/:id/delete',      [AdminProduct::class,   'destroy'], ['admin', 'csrf']);
 $router->post('/admin/products/:id/images/:imgId/delete', [AdminProduct::class, 'deleteImage'], ['admin', 'csrf']);
-
-// Bulk upload
-$router->get( '/admin/products/bulk-upload',     [AdminBulkUpload::class, 'show'],   ['admin']);
-$router->post('/admin/products/bulk-upload',     [AdminBulkUpload::class, 'process'],['admin', 'csrf']);
 
 // Orders (admin)
 $router->get( '/admin/orders',                   [AdminOrder::class,     'index'],   ['admin']);

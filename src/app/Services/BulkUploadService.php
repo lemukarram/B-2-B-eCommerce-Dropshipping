@@ -141,24 +141,26 @@ class BulkUploadService
         $required = ['sku', 'title', 'base_price'];
 
         foreach ($required as $col) {
-            if (empty($row[$col])) {
+            if (empty(trim((string)($row[$col] ?? '')))) {
                 return "Row {$line}: '{$col}' is required.";
             }
         }
 
-        if (filter_var($row['base_price'], FILTER_VALIDATE_FLOAT) === false) {
+        $price = preg_replace('/[^0-9.]/', '', (string)$row['base_price']);
+        if (filter_var($price, FILTER_VALIDATE_FLOAT) === false) {
             return "Row {$line}: 'base_price' must be a valid number.";
         }
 
-        if ((float)$row['base_price'] < 0) {
+        if ((float)$price < 0) {
             return "Row {$line}: 'base_price' cannot be negative.";
         }
 
-        if (!empty($row['category_slug']) && !isset($categories[$row['category_slug']])) {
-            return "Row {$line}: category_slug '{$row['category_slug']}' not found.";
+        $catSlug = trim((string)($row['category_slug'] ?? ''));
+        if (!empty($catSlug) && !isset($categories[$catSlug])) {
+            return "Row {$line}: category_slug '{$catSlug}' not found.";
         }
 
-        if (strlen($row['sku']) > 100) {
+        if (strlen(trim((string)$row['sku'])) > 100) {
             return "Row {$line}: 'sku' exceeds 100 characters.";
         }
 
@@ -167,14 +169,19 @@ class BulkUploadService
 
     private function prepareRow(array $row, array $categories): array
     {
+        $title = trim(strip_tags((string)$row['title']));
+        $sku   = trim(strip_tags((string)$row['sku']));
+        $price = (float)preg_replace('/[^0-9.]/', '', (string)$row['base_price']);
+        $catSlug = trim((string)($row['category_slug'] ?? ''));
+
         return [
-            'sku'            => trim($row['sku']),
-            'title'          => trim($row['title']),
-            'slug'           => $this->slugService->generate(trim($row['title'])),
-            'category_id'    => !empty($row['category_slug']) ? $categories[$row['category_slug']] : null,
-            'base_price'     => number_format((float)$row['base_price'], 2, '.', ''),
+            'sku'            => $sku,
+            'title'          => $title,
+            'slug'           => $this->slugService->generate($title),
+            'category_id'    => !empty($catSlug) ? $categories[$catSlug] : null,
+            'base_price'     => number_format($price, 2, '.', ''),
             'stock_quantity' => isset($row['stock_quantity']) ? max(0, (int)$row['stock_quantity']) : 0,
-            'description'    => trim($row['description'] ?? ''),
+            'description'    => trim((string)($row['description'] ?? '')),
             'is_active'      => 1,
         ];
     }
