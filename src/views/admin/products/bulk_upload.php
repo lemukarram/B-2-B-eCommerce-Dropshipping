@@ -10,8 +10,8 @@
             <div class="card-body">
                 <h6 class="card-title">Upload CSV or XLSX File</h6>
                 <p class="text-muted small">
-                    Required columns: <code>sku</code>, <code>title</code>, <code>base_price</code><br>
-                    Optional columns: <code>category_slug</code>, <code>stock_quantity</code>, <code>description</code>
+                    Required columns: <code>title</code>, <code>base_price</code><br>
+                    Optional columns: <code>sku</code> (auto-generated if missing), <code>category_slug</code>, <code>stock_quantity</code>, <code>description</code>
                 </p>
 
                 <form method="POST" action="/admin/products/bulk-upload" enctype="multipart/form-data">

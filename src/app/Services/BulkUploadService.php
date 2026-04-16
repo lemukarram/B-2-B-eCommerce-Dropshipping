@@ -138,7 +138,7 @@ class BulkUploadService
 
     private function validateRow(array $row, array $categories, int $line): ?string
     {
-        $required = ['sku', 'title', 'base_price'];
+        $required = ['title', 'base_price']; // SKU is now optional
 
         foreach ($required as $col) {
             if (empty(trim((string)($row[$col] ?? '')))) {
@@ -160,7 +160,8 @@ class BulkUploadService
             return "Row {$line}: category_slug '{$catSlug}' not found.";
         }
 
-        if (strlen(trim((string)$row['sku'])) > 100) {
+        $sku = trim((string)($row['sku'] ?? ''));
+        if (!empty($sku) && strlen($sku) > 100) {
             return "Row {$line}: 'sku' exceeds 100 characters.";
         }
 
@@ -170,9 +171,14 @@ class BulkUploadService
     private function prepareRow(array $row, array $categories): array
     {
         $title = trim(strip_tags((string)$row['title']));
-        $sku   = trim(strip_tags((string)$row['sku']));
+        $sku   = trim(strip_tags((string)($row['sku'] ?? '')));
         $price = (float)preg_replace('/[^0-9.]/', '', (string)$row['base_price']);
         $catSlug = trim((string)($row['category_slug'] ?? ''));
+
+        // Auto-generate SKU if missing
+        if (empty($sku)) {
+            $sku = $this->generateUniqueSku($title);
+        }
 
         return [
             'sku'            => $sku,
@@ -184,6 +190,25 @@ class BulkUploadService
             'description'    => trim((string)($row['description'] ?? '')),
             'is_active'      => 1,
         ];
+    }
+
+    private function generateUniqueSku(string $title): string
+    {
+        $prefix = strtoupper(substr(preg_replace('/[^A-Za-z0-9]/', '', $title), 0, 3));
+        if (strlen($prefix) < 3) $prefix = 'PRD';
+        
+        $pdo = Database::getInstance();
+        
+        while (true) {
+            $random = strtoupper(bin2hex(random_bytes(3))); // 6 char random
+            $sku = $prefix . '-' . $random;
+            
+            $stmt = $pdo->prepare("SELECT COUNT(*) FROM products WHERE sku = ?");
+            $stmt->execute([$sku]);
+            if ((int)$stmt->fetchColumn() === 0) {
+                return $sku;
+            }
+        }
     }
 
     private function batchInsert(array $rows): int
