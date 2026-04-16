@@ -1,0 +1,25 @@
+# EMAG.PK - cPanel Web Server Configuration
+Options -Indexes
+
+# ── Rewrite Rules ──────────────────────────────────────────────────────────
+<IfModule mod_rewrite.c>
+    RewriteEngine On
+    
+    # Redirect Trailing Slashes If Not A Folder...
+    RewriteCond %{REQUEST_FILENAME} !-d
+    RewriteRule ^(.*)/$ /$1 [L,R=301]
+
+    # Handle Front Controller...
+    RewriteCond %{REQUEST_FILENAME} !-d
+    RewriteCond %{REQUEST_FILENAME} !-f
+    RewriteRule ^ index.php [L]
+</IfModule>
+
+# ── Block access to sensitive folders ──────────────────────────────────────
+RedirectMatch 404 ^/src(/|$)
+RedirectMatch 404 ^/database(/|$)
+RedirectMatch 404 ^/storage(/|$)
+RedirectMatch 404 ^/composer\.(json|lock)$
+RedirectMatch 404 ^/config\.php$
+RedirectMatch 404 ^/\.env(\.example)?$
+RedirectMatch 404 ^/\.git(/|$)

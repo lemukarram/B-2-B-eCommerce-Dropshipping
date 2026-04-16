@@ -1,0 +1,38 @@
+# --- System Files ---
+.DS_Store
+.DS_Store?
+._*
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+
+# --- Dependencies ---
+/vendor/
+
+# --- Configuration ---
+/config.php
+/.env
+
+# --- Uploads ---
+/uploads/products/*
+/uploads/categories/*
+/uploads/bulk/*
+!/uploads/products/.gitkeep
+!/uploads/categories/.gitkeep
+!/uploads/bulk/.gitkeep
+
+# --- Logs & Storage ---
+/src/storage/logs/*
+!/src/storage/logs/.gitkeep
+*.log
+
+# --- IDEs & Tools ---
+.vscode/
+.idea/
+*.swp
+*.swo
+.phpunit.result.cache
+
+# --- Utility Scripts ---
+import_wc.php
+wc-product-export-*.csv
