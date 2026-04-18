@@ -3,7 +3,7 @@
 declare(strict_types=1);
 
 /**
- * EMAG.PK - DEFINITIVE PRODUCT IMPORT SCRIPT v3
+ * EMAG.PK - DEFINITIVE PRODUCT IMPORT SCRIPT v4
  * Optimized for 200+ products, PHP 8.3+, and csv-emag-file.csv
  */
 
@@ -42,7 +42,7 @@ function logMsg($msg, $color = '#0f0') {
 }
 
 /**
- * Image Downloader with Cache check
+ * Image Downloader
  */
 function downloadProductImage($url, $productTitle, $index = 0) {
     $url = trim($url);
@@ -64,10 +64,9 @@ function downloadProductImage($url, $productTitle, $index = 0) {
         $relativePath = $relativeDir . '/' . $filename;
         $absolutePath = PUBLIC_PATH . $relativePath;
 
-        // Skip download if file already exists to save time
         if (file_exists($absolutePath)) return $relativePath;
 
-        $ctx = stream_context_create(['http' => ['timeout' => 10, 'ignore_errors' => true, 'header' => "User-Agent: Mozilla/5.0\r\n"]]);
+        $ctx = stream_context_create(['http' => ['timeout' => 15, 'ignore_errors' => true, 'header' => "User-Agent: Mozilla/5.0\r\n"]]);
         $data = @file_get_contents($url, false, $ctx);
         if (!$data) return null;
 
@@ -122,115 +121,130 @@ function getOrCreateCategoryId($categoryString, &$cache, $pdo) {
 }
 
 // UI Start
-echo "<html><head><title>EMAG.PK - Definitive Import</title>";
+echo "<html><head><title>EMAG.PK - Persistent Import</title>";
 echo "<style>body{background:#0a0a0a; color:#ccc; font-family: 'Segoe UI', monospace; padding:30px; line-height:1.5;} 
       h2{color:#00ff88; border-bottom: 2px solid #00ff88; display:inline-block; padding-bottom:5px;} .stats{background:#111; padding:15px; border-radius:4px; border: 1px solid #222; margin-bottom:20px;}
-      .btn{background:#00ff88; color:#000; padding:10px 20px; text-decoration:none; font-weight:bold; border-radius:3px; display:inline-block; margin-top:10px;}
-      .log-container{background:#000; padding:15px; border-radius:4px; border:1px solid #333; height: 500px; overflow-y: scroll; display: flex; flex-direction: column-reverse;}</style></head><body>";
-echo "<h2>🚀 EMAG.PK BULK IMPORTER v3.0</h2>";
+      .btn{background:#222; color:#00ff88; padding:8px 15px; text-decoration:none; font-weight:bold; border: 1px solid #00ff88; border-radius:3px; display:inline-block; margin-right:10px;}
+      .btn:hover{background:#00ff88; color:#000;}</style></head><body>";
+echo "<h2>🚀 EMAG.PK PERSISTENT IMPORTER v4.0</h2><br>";
 
 try {
     $pdo = Database::getInstance();
     $slugService = new SlugService();
 
-    // 1. AUTO-PURGE IF STARTING FRESH
-    $startFrom = isset($_GET['start']) ? (int)$_GET['start'] : 0;
-    if ($startFrom === 0 && (!isset($_GET['continue']))) {
-        logMsg("🧹 AUTOMATIC PURGE: Removing old data for fresh import...", "yellow");
+    // Stats
+    $totalProducts = (int)$pdo->query("SELECT COUNT(*) FROM products")->fetchColumn();
+    echo "<div class='stats'>Total Products currently in DB: <strong>$totalProducts</strong></div>";
+
+    // Menu
+    echo "<a href='import_csv.php?action=purge' class='btn' style='color:red; border-color:red;' onclick=\"return confirm('DANGER: This will delete ALL products and categories. Continue?')\">Clear & Start Fresh</a>";
+    echo "<a href='import_csv.php?action=import&start=0' class='btn'>Resume / Import Missing</a>";
+    echo "<a href='/admin/products' class='btn'>View Products</a><hr>";
+
+    $action = $_GET['action'] ?? '';
+    if ($action === 'purge') {
+        logMsg("🧹 PURGING DATABASE...", "red");
         $pdo->exec("SET FOREIGN_KEY_CHECKS = 0;");
         $pdo->exec("TRUNCATE TABLE product_images;");
         $pdo->exec("TRUNCATE TABLE products;");
         $pdo->exec("TRUNCATE TABLE categories;");
         $pdo->exec("SET FOREIGN_KEY_CHECKS = 1;");
-        logMsg("✅ Database is now clean.", "#00ff88");
+        logMsg("✅ Database cleared. Redirecting to start import...", "#00ff88");
+        echo "<script>setTimeout(function(){ window.location.href = 'import_csv.php?action=import&start=0'; }, 1000);</script>";
+        exit;
     }
 
-    $csvFile = __DIR__ . '/csv-emag-file.csv';
-    if (!file_exists($csvFile)) die("<div style='color:red;'>Error: 'csv-emag-file.csv' not found.</div>");
+    if ($action === 'import') {
+        $csvFile = __DIR__ . '/csv-emag-file.csv';
+        if (!file_exists($csvFile)) die("<div style='color:red;'>Error: 'csv-emag-file.csv' not found.</div>");
 
-    $handle = fopen($csvFile, 'r');
-    $headers = fgetcsv($handle, 0, ",", "\"", "\\");
-    if (!$headers) die("<div style='color:red;'>Error: CSV file is empty.</div>");
-    
-    $headers = array_map(function($h) { return trim(str_replace("\xEF\xBB\xBF", '', $h)); }, $headers);
+        $handle = fopen($csvFile, 'r');
+        $headers = fgetcsv($handle, 0, ",", "\"", "\\");
+        $headers = array_map(function($h) { return trim(str_replace("\xEF\xBB\xBF", '', $h)); }, $headers);
 
-    $imported = 0; $skipped = 0; $errors = 0;
-    $categoriesCache = [];
-    $batchSize = 40; // High performance batching
-    $currentRow = 0;
+        $startFrom = isset($_GET['start']) ? (int)$_GET['start'] : 0;
+        $batchSize = 40;
+        $currentRow = 0;
+        $imported = 0;
+        $skipped = 0;
+        $categoriesCache = [];
 
-    logMsg("🔍 Processing CSV from Row #" . ($startFrom + 1), "cyan");
+        logMsg("🔍 Processing Batch starting from Row #" . ($startFrom + 1), "cyan");
 
-    while (($data = fgetcsv($handle, 0, ",", "\"", "\\")) !== false) {
-        $currentRow++;
-        if ($currentRow <= $startFrom) continue;
-        if (count($data) < count($headers)) continue;
+        while (($data = fgetcsv($handle, 0, ",", "\"", "\\")) !== false) {
+            $currentRow++;
+            if ($currentRow <= $startFrom) continue;
+            if (count($data) < count($headers)) continue;
 
-        $row = array_combine($headers, array_slice($data, 0, count($headers)));
-        $title = trim(strip_tags(html_entity_decode($row['Name'] ?? '', ENT_QUOTES, 'UTF-8')));
-        if (empty($title)) continue;
+            $row = array_combine($headers, array_slice($data, 0, count($headers)));
+            $title = trim(strip_tags(html_entity_decode($row['Name'] ?? '', ENT_QUOTES, 'UTF-8')));
+            if (empty($title)) continue;
 
-        $sku = !empty($row['SKU']) ? trim($row['SKU']) : 'EP-' . strtoupper(substr(md5($title), 0, 8));
+            $sku = !empty($row['SKU']) ? trim($row['SKU']) : 'EP-' . strtoupper(substr(md5($title), 0, 8));
 
-        try {
-            $pdo->beginTransaction();
+            // DUPLICATE CHECK (For Resume Support)
+            $check = $pdo->prepare("SELECT id FROM products WHERE sku = ? OR title = ? LIMIT 1");
+            $check->execute([$sku, $title]);
+            if ($check->fetch()) {
+                $skipped++;
+                if ($skipped % 10 == 0) logMsg("⏩ Skipped $skipped items (already in DB)...", "#555");
+                continue;
+            }
 
-            $regPrice = (float)preg_replace('/[^0-9.]/', '', (string)($row['Regular price'] ?? '0'));
-            $salePrice = (float)preg_replace('/[^0-9.]/', '', (string)($row['Sale price'] ?? '0'));
-            $basePrice = ($salePrice > 0) ? $salePrice : $regPrice;
+            try {
+                $pdo->beginTransaction();
 
-            $stockQty = (($row['In stock?'] ?? '') == '1') ? (!empty($row['Stock']) ? (int)$row['Stock'] : 100) : 0;
-            $categoryId = getOrCreateCategoryId((string)($row['Categories'] ?? ''), $categoriesCache, $pdo);
-            
-            $slug = $slugService->generate($title);
-            $sCheck = $pdo->prepare("SELECT id FROM products WHERE slug = ? LIMIT 1");
-            $sCheck->execute([$slug]);
-            if ($sCheck->fetch()) $slug .= '-' . rand(100, 999);
+                $regPrice = (float)preg_replace('/[^0-9.]/', '', (string)($row['Regular price'] ?? '0'));
+                $salePrice = (float)preg_replace('/[^0-9.]/', '', (string)($row['Sale price'] ?? '0'));
+                $basePrice = ($salePrice > 0) ? $salePrice : $regPrice;
 
-            $desc = trim($row['Description'] ?? $row['Short description'] ?? '');
+                $stockQty = (($row['In stock?'] ?? '') == '1') ? (!empty($row['Stock']) ? (int)$row['Stock'] : 100) : 0;
+                $categoryId = getOrCreateCategoryId((string)($row['Categories'] ?? ''), $categoriesCache, $pdo);
+                
+                $slug = $slugService->generate($title);
+                $sCheck = $pdo->prepare("SELECT id FROM products WHERE slug = ? LIMIT 1");
+                $sCheck->execute([$slug]);
+                if ($sCheck->fetch()) $slug .= '-' . rand(100, 999);
 
-            $stmt = $pdo->prepare("INSERT INTO products (category_id, sku, title, slug, description, base_price, stock_quantity, is_active) VALUES (?, ?, ?, ?, ?, ?, ?, 1)");
-            $stmt->execute([$categoryId, $sku, $title, $slug, $desc, $basePrice, $stockQty]);
-            $productId = (int)$pdo->lastInsertId();
+                $desc = trim($row['Description'] ?? $row['Short description'] ?? '');
 
-            // Images - ALL images from CSV
-            $imageUrls = explode(',', (string)($row['Images'] ?? ''));
-            $imgCount = 0;
-            foreach ($imageUrls as $url) {
-                $path = downloadProductImage($url, $title, $imgCount);
-                if ($path) {
-                    $pdo->prepare("INSERT INTO product_images (product_id, image_path, is_primary, sort_order) VALUES (?, ?, ?, ?)")
-                        ->execute([$productId, $path, ($imgCount === 0 ? 1 : 0), $imgCount]);
-                    $imgCount++;
+                $stmt = $pdo->prepare("INSERT INTO products (category_id, sku, title, slug, description, base_price, stock_quantity, is_active) VALUES (?, ?, ?, ?, ?, ?, ?, 1)");
+                $stmt->execute([$categoryId, $sku, $title, $slug, $desc, $basePrice, $stockQty]);
+                $productId = (int)$pdo->lastInsertId();
+
+                // Images
+                $imageUrls = explode(',', (string)($row['Images'] ?? ''));
+                $imgCount = 0;
+                foreach ($imageUrls as $url) {
+                    $path = downloadProductImage($url, $title, $imgCount);
+                    if ($path) {
+                        $pdo->prepare("INSERT INTO product_images (product_id, image_path, is_primary, sort_order) VALUES (?, ?, ?, ?)")
+                            ->execute([$productId, $path, ($imgCount === 0 ? 1 : 0), $imgCount]);
+                        $imgCount++;
+                    }
                 }
-                // No hard limit here anymore, will import all available
+
+                $pdo->commit();
+                $imported++;
+                logMsg("✅ [Row $currentRow] Imported: " . substr($title, 0, 45) . "...", "#00ff88");
+
+                if ($imported >= $batchSize) {
+                    $next = $currentRow;
+                    logMsg("🔄 Batch Complete. Auto-redirecting to row $next...", "cyan");
+                    echo "<script>setTimeout(function(){ window.location.href = 'import_csv.php?action=import&start=$next'; }, 500);</script>";
+                    fclose($handle);
+                    exit;
+                }
+
+            } catch (Exception $e) {
+                if ($pdo->inTransaction()) $pdo->rollBack();
+                logMsg("❌ Error Row {$currentRow}: " . $e->getMessage(), "red");
             }
-
-            $pdo->commit();
-            $imported++;
-            logMsg("✅ [Row $currentRow] Imported: " . substr($title, 0, 45) . "...", "#00ff88");
-
-            if ($imported >= $batchSize) {
-                $next = $currentRow;
-                logMsg("🔄 Batch Complete. Auto-redirecting to row $next...", "cyan");
-                echo "<script>setTimeout(function(){ window.location.href = 'import_csv.php?start=$next&continue=1'; }, 500);</script>";
-                fclose($handle);
-                exit;
-            }
-
-        } catch (Exception $e) {
-            if ($pdo->inTransaction()) $pdo->rollBack();
-            $errors++;
-            logMsg("❌ Error Row {$currentRow}: " . $e->getMessage(), "red");
         }
+        fclose($handle);
+        echo "<hr><h3>🎉 IMPORT COMPLETE</h3>";
+        echo "Check your <a href='/admin/products'>Dashboard</a> now.";
     }
-
-    fclose($handle);
-    echo "<hr><div class='stats'><h3>🎉 MISSION ACCOMPLISHED</h3>";
-    echo "Total Products Processed: <strong>$currentRow</strong><br>";
-    echo "Successfully Imported: <strong style='color:#00ff88;'>$imported</strong><br>";
-    echo "Failed/Errors: <strong style='color:red;'>$errors</strong></div>";
-    echo "<a href='/admin/products' class='btn'>VIEW PRODUCTS</a>";
 
 } catch (Exception $e) {
     die("<div style='color:red;'>FATAL ERROR: " . $e->getMessage() . "</div>");
