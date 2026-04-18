@@ -193,7 +193,7 @@ try {
             $stmt->execute([$categoryId, $sku, $title, $slug, $desc, $basePrice, $stockQty]);
             $productId = (int)$pdo->lastInsertId();
 
-            // Images
+            // Images - ALL images from CSV
             $imageUrls = explode(',', (string)($row['Images'] ?? ''));
             $imgCount = 0;
             foreach ($imageUrls as $url) {
@@ -203,7 +203,7 @@ try {
                         ->execute([$productId, $path, ($imgCount === 0 ? 1 : 0), $imgCount]);
                     $imgCount++;
                 }
-                if ($imgCount >= 5) break; 
+                // No hard limit here anymore, will import all available
             }
 
             $pdo->commit();
