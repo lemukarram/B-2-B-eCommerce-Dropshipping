@@ -36,12 +36,12 @@
         <table class="table align-middle">
             <thead>
                 <tr>
-                    <th style="width: 120px;">SKU</th>
+                    <th style="width: 80px;">Image</th>
                     <th>Product Details</th>
                     <th>Category</th>
-                    <th class="text-end">Base Price</th>
+                    <th class="text-end" style="width: 150px;">Base Price</th>
                     <th class="text-center">Stock</th>
-                    <th>Status</th>
+                    <th style="width: 140px;">Status</th>
                     <th class="text-end">Actions</th>
                 </tr>
             </thead>
@@ -49,18 +49,37 @@
                 <?php foreach ($products as $p): ?>
                 <tr>
                     <td>
-                        <span class="badge bg-light text-secondary border font-monospace"><?= e($p['sku']) ?></span>
+                        <?php if ($p['image_path']): ?>
+                            <img src="/<?= e($p['image_path']) ?>" alt="" class="rounded border" style="width: 50px; height: 50px; object-fit: cover;">
+                        <?php else: ?>
+                            <div class="bg-light border rounded d-flex align-items-center justify-content-center text-muted" style="width: 50px; height: 50px;">
+                                <i class="bi bi-image small"></i>
+                            </div>
+                        <?php endif; ?>
                     </td>
                     <td>
                         <div class="fw-bold text-dark"><?= e($p['title']) ?></div>
-                        <div class="text-muted small">ID: #<?= $p['id'] ?></div>
+                        <div class="text-muted small">
+                            ID: #<?= $p['id'] ?> | SKU: <span class="font-monospace"><?= e($p['sku']) ?></span>
+                        </div>
                     </td>
                     <td>
                         <span class="badge bg-info-subtle text-info border-0 rounded-pill px-3">
                             <?= e($p['category_name'] ?? 'Uncategorized') ?>
                         </span>
                     </td>
-                    <td class="text-end fw-bold">Rs. <?= number_format($p['base_price'], 2) ?></td>
+                    <td class="text-end">
+                        <div class="input-group input-group-sm justify-content-end">
+                            <span class="input-group-text">Rs.</span>
+                            <input type="number" 
+                                   class="form-control quick-update" 
+                                   data-id="<?= $p['id'] ?>" 
+                                   data-field="base_price" 
+                                   value="<?= $p['base_price'] ?>" 
+                                   step="0.01" 
+                                   style="max-width: 100px;">
+                        </div>
+                    </td>
                     <td class="text-center">
                         <?php if ($p['stock_quantity'] <= 0): ?>
                             <span class="badge bg-danger">Out of Stock</span>
@@ -71,11 +90,12 @@
                         <?php endif; ?>
                     </td>
                     <td>
-                        <?php if ($p['is_active']): ?>
-                            <span class="badge bg-success-subtle text-success border-0 rounded-pill px-3">Active</span>
-                        <?php else: ?>
-                            <span class="badge bg-secondary-subtle text-secondary border-0 rounded-pill px-3">Inactive</span>
-                        <?php endif; ?>
+                        <select class="form-select form-select-sm quick-update" 
+                                data-id="<?= $p['id'] ?>" 
+                                data-field="is_active">
+                            <option value="1" <?= $p['is_active'] ? 'selected' : '' ?>>Active</option>
+                            <option value="0" <?= !$p['is_active'] ? 'selected' : '' ?>>Inactive</option>
+                        </select>
                     </td>
                     <td class="text-end">
                         <div class="d-flex justify-content-end gap-2">
@@ -116,3 +136,56 @@
     include VIEW_PATH . '/components/pagination.php';
     ?>
 </div>
+
+<script>
+document.querySelectorAll('.quick-update').forEach(el => {
+    el.addEventListener('change', async function() {
+        const id = this.dataset.id;
+        const field = this.dataset.field;
+        const value = this.value;
+        const originalColor = this.style.borderColor;
+        
+        // Find CSRF token from any existing form
+        const csrfToken = document.querySelector('input[name="_csrf_token"]')?.value;
+
+        if (!csrfToken) {
+            alert('Security token not found. Please refresh the page.');
+            return;
+        }
+
+        const formData = new FormData();
+        formData.append('id', id);
+        formData.append('field', field);
+        formData.append('value', value);
+        formData.append('_csrf_token', csrfToken);
+
+        this.style.borderColor = '#0d6efd'; // Visual feedback
+
+        try {
+            const response = await fetch('/admin/products/quick-update', {
+                method: 'POST',
+                body: formData,
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest'
+                }
+            });
+
+            const result = await response.json();
+
+            if (result.success) {
+                this.style.borderColor = '#198754';
+                setTimeout(() => {
+                    this.style.borderColor = originalColor;
+                }, 1000);
+            } else {
+                alert(result.error || 'Update failed');
+                this.style.borderColor = '#dc3545';
+            }
+        } catch (error) {
+            console.error('Error:', error);
+            alert('An error occurred. Please try again.');
+            this.style.borderColor = '#dc3545';
+        }
+    });
+});
+</script>

@@ -55,6 +55,7 @@ $router->post('/admin/categories/:id/delete',    [AdminCategory::class,  'destro
 
 // Products
 $router->get( '/admin/products',                 [AdminProduct::class,   'index'],   ['admin']);
+$router->post('/admin/products/quick-update',     [AdminProduct::class,   'quickUpdate'],['admin', 'csrf']);
 
 // Bulk upload (must be above /admin/products/:id routes)
 $router->get( '/admin/products/bulk-upload',     [AdminBulkUpload::class, 'show'],   ['admin']);

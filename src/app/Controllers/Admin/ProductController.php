@@ -162,6 +162,36 @@ class ProductController
         Response::redirect('/admin/products/' . $request->param('id') . '/edit');
     }
 
+    public function quickUpdate(Request $request): void
+    {
+        $id    = (int)$request->post('id');
+        $field = $request->post('field');
+        $value = $request->post('value');
+
+        if (!$id || !in_array($field, ['is_active', 'base_price'])) {
+            Response::json(['success' => false, 'error' => 'Invalid request.'], 400);
+            return;
+        }
+
+        // Basic validation
+        if ($field === 'is_active') {
+            $value = $value ? 1 : 0;
+        } else {
+            $value = number_format((float)$value, 2, '.', '');
+            if ($value < 0) {
+                Response::json(['success' => false, 'error' => 'Price cannot be negative.'], 400);
+                return;
+            }
+        }
+
+        try {
+            Product::update($id, [$field => $value]);
+            Response::json(['success' => true, 'message' => 'Updated successfully.']);
+        } catch (\Throwable $e) {
+            Response::json(['success' => false, 'error' => 'Database error.'], 500);
+        }
+    }
+
     private function handleImageUploads(int $productId, Request $request): void
     {
         if (!isset($_FILES['images'])) {

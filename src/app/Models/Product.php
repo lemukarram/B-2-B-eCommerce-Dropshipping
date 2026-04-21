@@ -44,9 +44,10 @@ class Product extends BaseModel
         )->fetchColumn();
 
         $rows = static::query(
-            "SELECT p.*, c.name AS category_name
+            "SELECT p.*, c.name AS category_name, pi.image_path
              FROM products p
              LEFT JOIN categories c ON c.id = p.category_id
+             LEFT JOIN product_images pi ON pi.product_id = p.id AND pi.is_primary = 1
              WHERE {$where}
              ORDER BY p.created_at DESC
              LIMIT ? OFFSET ?",
