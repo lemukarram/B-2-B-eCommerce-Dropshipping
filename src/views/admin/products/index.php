@@ -50,7 +50,7 @@
                 <tr>
                     <td>
                         <?php if ($p['image_path']): ?>
-                            <img src="/<?= e($p['image_path']) ?>" alt="" class="rounded border" style="width: 50px; height: 50px; object-fit: cover;">
+                            <img src="<?= e($p['image_path']) ?>" alt="" class="rounded border" style="width: 50px; height: 50px; object-fit: cover;">
                         <?php else: ?>
                             <div class="bg-light border rounded d-flex align-items-center justify-content-center text-muted" style="width: 50px; height: 50px;">
                                 <i class="bi bi-image small"></i>
