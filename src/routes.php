@@ -92,6 +92,12 @@ $router->get( '/admin/reports',                  [AdminReport::class,    'index'
 $router->get( '/admin/reports/orders',           [AdminReport::class,    'orders'],  ['admin']);
 $router->get( '/admin/reports/sellers',          [AdminReport::class,    'sellers'], ['admin']);
 
+// Price Management
+$router->get( '/admin/settings/price-management', [App\Controllers\Admin\PriceManagementController::class, 'index'], ['admin']);
+$router->post('/admin/settings/price-rules',      [App\Controllers\Admin\PriceManagementController::class, 'storeRule'], ['admin', 'csrf']);
+$router->post('/admin/settings/price-rules/:id/delete', [App\Controllers\Admin\PriceManagementController::class, 'deleteRule'], ['admin', 'csrf']);
+$router->post('/admin/settings/price-sync',       [App\Controllers\Admin\PriceManagementController::class, 'syncPrices'], ['admin', 'csrf']);
+
 // Settings
 $router->get( '/admin/settings',                 [AdminSettings::class,  'index'],   ['admin']);
 $router->post('/admin/settings',                 [AdminSettings::class,  'update'],  ['admin', 'csrf']);

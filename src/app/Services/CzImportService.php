@@ -26,9 +26,10 @@ class CzImportService
      * @param string $filePath Path to .xlsx file
      * @param string $reference Category reference (e.g. '34')
      * @param string|null $categoryName Optional name if category needs creating
+     * @param int|null $categoryId Optional existing category ID to assign
      * @return array [inserted, updated, errors]
      */
-    public function process(string $filePath, string $reference, ?string $categoryName = null): array
+    public function process(string $filePath, string $reference, ?string $categoryName = null, ?int $categoryId = null): array
     {
         $rows = $this->parseXlsx($filePath);
         if (empty($rows)) {
@@ -36,7 +37,18 @@ class CzImportService
         }
 
         $pdo = Database::getInstance();
-        $category = Category::findByReference($reference);
+        
+        // 1. Resolve Category
+        $category = null;
+        if ($categoryId) {
+            $stmt = $pdo->prepare("SELECT * FROM categories WHERE id = ?");
+            $stmt->execute([$categoryId]);
+            $category = $stmt->fetch();
+        }
+
+        if (!$category) {
+            $category = Category::findByReference($reference);
+        }
 
         if (!$category) {
             if (empty($categoryName)) {
@@ -48,6 +60,11 @@ class CzImportService
             $categoryId = (int)$pdo->lastInsertId();
         } else {
             $categoryId = (int)$category['id'];
+            // If category exists but has no reference, or different reference, update it
+            if (($category['reference'] ?? '') !== $reference) {
+                $pdo->prepare("UPDATE categories SET reference = ? WHERE id = ?")
+                    ->execute([$reference, $categoryId]);
+            }
         }
 
         $stats = ['inserted' => 0, 'updated' => 0, 'errors' => []];
@@ -78,9 +95,9 @@ class CzImportService
         $pdo = Database::getInstance();
 
         if ($product) {
-            // Update
+            // Update - keep buying price as buy_price
             $stmt = $pdo->prepare("UPDATE products SET 
-                title = ?, base_price = ?, description = ?, category_id = ?, updated_at = NOW() 
+                title = ?, buy_price = ?, description = ?, category_id = ?, updated_at = NOW() 
                 WHERE id = ?");
             $stmt->execute([$name, $price, $description, $categoryId, $product['id']]);
             $productId = (int)$product['id'];
@@ -91,9 +108,10 @@ class CzImportService
             $sku  = 'CZ-' . $pid;
             
             $stmt = $pdo->prepare("INSERT INTO products 
-                (pid, sku, title, slug, description, base_price, category_id, is_active) 
-                VALUES (?, ?, ?, ?, ?, ?, ?, 1)");
-            $stmt->execute([$pid, $sku, $name, $slug, $description, $price, $categoryId]);
+                (pid, sku, title, slug, description, buy_price, base_price, category_id, is_active) 
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, 1)");
+            // Initialize base_price same as buy_price until margin is applied
+            $stmt->execute([$pid, $sku, $name, $slug, $description, $price, $price, $categoryId]);
             $productId = (int)$pdo->lastInsertId();
             $stats['inserted']++;
         }

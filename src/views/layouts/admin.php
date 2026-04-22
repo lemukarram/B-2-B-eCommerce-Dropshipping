@@ -54,7 +54,10 @@
             </a>
 
             <small class="text-uppercase text-muted fw-bold mt-4 mb-2 px-3" style="font-size: 0.7rem; letter-spacing: 0.05rem;">Config</small>
-            <a class="nav-link <?= str_contains($_SERVER['REQUEST_URI'], '/admin/settings') ? 'active' : '' ?>" href="/admin/settings">
+            <a class="nav-link <?= str_contains($_SERVER['REQUEST_URI'], '/admin/settings/price-management') ? 'active' : '' ?>" href="/admin/settings/price-management">
+                <i class="bi bi-currency-exchange text-warning"></i> Price Management
+            </a>
+            <a class="nav-link <?= str_contains($_SERVER['REQUEST_URI'], '/admin/settings') && !str_contains($_SERVER['REQUEST_URI'], '/price-management') ? 'active' : '' ?>" href="/admin/settings">
                 <i class="bi bi-gear-fill"></i> Settings
             </a>
         </div>

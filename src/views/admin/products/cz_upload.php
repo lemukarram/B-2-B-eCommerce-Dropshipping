@@ -8,20 +8,30 @@
     <div class="col-md-7">
         <?php if (!empty($pending)): ?>
             <div class="card border-warning mb-4">
-                <div class="card-header bg-warning text-dark">Category Not Found</div>
+                <div class="card-header bg-warning text-dark">Category Reference Not Set</div>
                 <div class="card-body">
-                    <p>The file <strong><?= e($pending['file']) ?></strong> is for category reference <strong><?= e($pending['reference']) ?></strong>, but this reference does not exist in the database.</p>
+                    <p>The file <strong><?= e($pending['file']) ?></strong> is for category reference <strong><?= e($pending['reference']) ?></strong>.</p>
                     <form method="POST" action="/admin/products/cz-import">
                         <?php include VIEW_PATH . '/components/csrf_input.php'; ?>
                         <input type="hidden" name="pending_file" value="<?= e($pending['file']) ?>">
                         <input type="hidden" name="reference" value="<?= e($pending['reference']) ?>">
                         
                         <div class="mb-3">
-                            <label for="category_name" class="form-label">New Category Name</label>
-                            <input type="text" name="category_name" id="category_name" class="form-control" required placeholder="e.g. Electronics, Clothing">
-                            <div class="form-text">This will create a new category and proceed with the import.</div>
+                            <label class="form-label">Assign to Existing Category</label>
+                            <select name="category_id" class="form-select">
+                                <option value="">-- Create New Instead --</option>
+                                <?php foreach ($categories as $cat): ?>
+                                    <option value="<?= $cat['id'] ?>"><?= e($cat['name']) ?> (Ref: <?= $cat['reference'] ?? 'None' ?>)</option>
+                                <?php endforeach; ?>
+                            </select>
                         </div>
-                        <button type="submit" class="btn btn-warning">Create Category & Import</button>
+
+                        <div class="mb-3">
+                            <label for="category_name" class="form-label">Or Create New Category Name</label>
+                            <input type="text" name="category_name" id="category_name" class="form-control" placeholder="e.g. Electronics, Clothing">
+                            <div class="form-text">If you select an existing category, it will be updated with reference '<?= e($pending['reference']) ?>'.</div>
+                        </div>
+                        <button type="submit" class="btn btn-warning">Update/Create & Import</button>
                         <a href="/admin/products/cz-import" class="btn btn-link text-muted">Cancel</a>
                     </form>
                 </div>
@@ -37,6 +47,18 @@
 
                     <form method="POST" action="/admin/products/cz-import" enctype="multipart/form-data">
                         <?php include VIEW_PATH . '/components/csrf_input.php'; ?>
+                        
+                        <div class="mb-3">
+                            <label for="category_id" class="form-label">Select Category (Optional)</label>
+                            <select name="category_id" id="category_id" class="form-select">
+                                <option value="">-- Auto-detect from filename --</option>
+                                <?php foreach ($categories as $cat): ?>
+                                    <option value="<?= $cat['id'] ?>"><?= e($cat['name']) ?> (Ref: <?= $cat['reference'] ?? 'None' ?>)</option>
+                                <?php endforeach; ?>
+                            </select>
+                            <div class="form-text">If not found by reference, system will ask to create or assign.</div>
+                        </div>
+
                         <div class="mb-3">
                             <label for="cz_file" class="form-label">Select File (.xlsx)</label>
                             <input type="file" name="cz_file" id="cz_file" class="form-control" accept=".xlsx" required>
