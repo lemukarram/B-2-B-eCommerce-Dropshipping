@@ -41,7 +41,7 @@
             <?php $img = \App\Models\Product::primaryImage($product['id']); ?>
             <div class="product-img-wrapper" style="height: 200px; background: #f8f9fa;">
                 <?php if ($img): ?>
-                    <img src="/uploads/products/<?= e($img['image_path']) ?>" class="card-img-top w-100 h-100 object-fit-cover" alt="<?= e($product['title']) ?>">
+                    <img src="<?= e($img['image_path']) ?>" class="card-img-top w-100 h-100 object-fit-cover" alt="<?= e($product['title']) ?>">
                 <?php else: ?>
                     <div class="d-flex align-items-center justify-content-center h-100 text-muted small">No Image</div>
                 <?php endif; ?>

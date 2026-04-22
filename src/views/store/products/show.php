@@ -19,7 +19,7 @@
                     <?php else: ?>
                         <?php foreach ($images as $i => $img): ?>
                             <div class="carousel-item <?= $i === 0 ? 'active' : '' ?> h-100">
-                                <img src="/uploads/products/<?= e($img['image_path']) ?>" class="d-block w-100 h-100 object-fit-contain" alt="...">
+                                <img src="<?= e($img['image_path']) ?>" class="d-block w-100 h-100 object-fit-contain" alt="...">
                             </div>
                         <?php endforeach; ?>
                     <?php endif; ?>

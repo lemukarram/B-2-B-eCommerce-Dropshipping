@@ -136,7 +136,7 @@ class CzImportService
     private function syncImage(int $productId, string $imageName): void
     {
         $pdo = Database::getInstance();
-        $path = 'products/' . $imageName;
+        $path = '/uploads/products/' . $imageName;
 
         $stmt = $pdo->prepare("SELECT id FROM product_images WHERE product_id = ? AND image_path = ?");
         $stmt->execute([$productId, $path]);
