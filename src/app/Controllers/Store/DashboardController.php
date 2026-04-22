@@ -50,4 +50,9 @@ class DashboardController
             'transactions' => $transactions,
         ], 'store');
     }
+
+    public function calculator(Request $request): void
+    {
+        View::render('store/calculator', [], 'store');
+    }
 }

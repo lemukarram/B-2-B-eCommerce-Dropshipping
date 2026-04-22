@@ -49,7 +49,8 @@ class AuthController
 
         $user = $this->authService->attempt(
             trim($request->post('email')),
-            $request->post('password')
+            $request->post('password'),
+            $request->post('remember') === 'on'
         );
 
         if ($user === null) {

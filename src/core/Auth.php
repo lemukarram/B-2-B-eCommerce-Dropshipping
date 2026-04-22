@@ -16,7 +16,7 @@ final class Auth
      * Establish an authenticated session for the given user row.
      * Calls session_regenerate_id(true) to prevent session fixation.
      */
-    public static function login(array $user): void
+    public static function login(array $user, bool $remember = false): void
     {
         session_regenerate_id(true);
 
@@ -26,19 +26,53 @@ final class Auth
         $_SESSION['user_parent_id'] = $user['parent_id'] ? (int) $user['parent_id'] : null;
         $_SESSION['user_status'] = $user['status'];
         $_SESSION['logged_in_at'] = time();
+
+        if ($remember) {
+            // 30 days cookie
+            $token = bin2hex(random_bytes(32));
+            $expiry = time() + (86400 * 30);
+            
+            // Save token to DB
+            $pdo = Database::getInstance();
+            $stmt = $pdo->prepare("UPDATE users SET remember_token = ? WHERE id = ?");
+            $stmt->execute([$token, $user['id']]);
+
+            setcookie('remember_me', $user['id'] . ':' . $token, [
+                'expires' => $expiry,
+                'path' => '/',
+                'httponly' => true,
+                'samesite' => 'Lax'
+            ]);
+        }
     }
 
     /**
-     * Destroy the session completely.
+     * Check for persistent login via cookie if session is expired.
      */
-    public static function logout(): void
-    {
-        Session::destroy();
-    }
-
     public static function check(): bool
     {
-        return !empty($_SESSION['user_id']);
+        if (!empty($_SESSION['user_id'])) {
+            return true;
+        }
+
+        // Try to recover session from remember_me cookie
+        if (isset($_COOKIE['remember_me'])) {
+            [$userId, $token] = explode(':', $_COOKIE['remember_me'], 2);
+            $pdo = Database::getInstance();
+            $stmt = $pdo->prepare("SELECT * FROM users WHERE id = ? AND remember_token = ? LIMIT 1");
+            $stmt->execute([$userId, $token]);
+            $user = $stmt->fetch();
+
+            if ($user) {
+                if (($user['role'] === 'seller' || $user['role'] === 'store') && $user['status'] === 'suspended') {
+                    return false;
+                }
+                self::login($user);
+                return true;
+            }
+        }
+
+        return false;
     }
 
     public static function id(): ?int

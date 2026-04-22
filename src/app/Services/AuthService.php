@@ -15,7 +15,7 @@ class AuthService
      * Attempt login. Returns user array on success, null on failure.
      * Also rehashes passwords if cost factor changed.
      */
-    public function attempt(string $email, string $password): ?array
+    public function attempt(string $email, string $password, bool $remember = false): ?array
     {
         $user = User::findByEmail($email);
 
@@ -36,7 +36,7 @@ class AuthService
             User::updatePassword($user['id'], $password);
         }
 
-        Auth::login($user);
+        Auth::login($user, $remember);
         return $user;
     }
 

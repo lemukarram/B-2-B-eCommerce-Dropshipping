@@ -153,3 +153,12 @@ $router->get( '/store/orders/:id',               [StoreOrder::class,     'show']
 
 // Wallet
 $router->get( '/store/wallet',                  [StoreDashboard::class,  'wallet'],  ['store']);
+
+// Profile & Bank
+$router->get( '/store/profile',                 [App\Controllers\Store\ProfileController::class, 'index'], ['store']);
+$router->post('/store/profile',                 [App\Controllers\Store\ProfileController::class, 'update'], ['store', 'csrf']);
+$router->post('/store/payment-methods',         [App\Controllers\Store\ProfileController::class, 'storePaymentMethod'], ['store', 'csrf']);
+$router->post('/store/payment-methods/:id/delete', [App\Controllers\Store\ProfileController::class, 'deletePaymentMethod'], ['store', 'csrf']);
+
+// Calculator
+$router->get( '/store/calculator',              [StoreDashboard::class,  'calculator'], ['store']);

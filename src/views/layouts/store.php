@@ -35,6 +35,14 @@
             <a class="nav-link <?= str_contains($_SERVER['REQUEST_URI'], '/store/wallet') ? 'active' : '' ?>" href="/store/wallet">
                 <i class="bi bi-wallet2"></i> My Wallet
             </a>
+            <a class="nav-link <?= str_contains($_SERVER['REQUEST_URI'], '/store/calculator') ? 'active' : '' ?>" href="/store/calculator">
+                <i class="bi bi-calculator"></i> Profit Calculator
+            </a>
+
+            <small class="text-uppercase text-muted fw-bold mt-4 mb-2 px-3" style="font-size: 0.7rem; letter-spacing: 0.05rem;">Config</small>
+            <a class="nav-link <?= str_contains($_SERVER['REQUEST_URI'], '/store/profile') ? 'active' : '' ?>" href="/store/profile">
+                <i class="bi bi-person-gear"></i> Profile & Bank
+            </a>
         </div>
 
         <div class="mt-auto px-3 py-3 border-top border-secondary">

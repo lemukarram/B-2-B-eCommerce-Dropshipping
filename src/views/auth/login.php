@@ -24,6 +24,14 @@
                                class="form-control" required autocomplete="current-password">
                     </div>
 
+                    <div class="mb-4 d-flex justify-content-between align-items-center">
+                        <div class="form-check">
+                            <input type="checkbox" name="remember" id="remember" class="form-check-input">
+                            <label for="remember" class="form-check-label small text-muted">Remember Me</label>
+                        </div>
+                        <a href="/forgot-password" class="small text-decoration-none">Forgot Password?</a>
+                    </div>
+
                     <button type="submit" class="btn btn-primary w-100">Login</button>
                 </form>
 

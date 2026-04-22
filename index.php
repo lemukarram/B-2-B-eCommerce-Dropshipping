@@ -58,11 +58,20 @@ set_exception_handler(function (\Throwable $e) use ($appConfig) {
     }
 });
 
-// ── Global XSS helper ─────────────────────────────────────────────────────
+// ── Global Helpers ────────────────────────────────────────────────────────
 // Use e($value) in every view instead of raw echo.
 function e(mixed $value): string
 {
     return htmlspecialchars((string) $value, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8');
+}
+
+/**
+ * Global helper to render the CSRF hidden input field.
+ */
+function csrf_input(): string
+{
+    $token = \Core\Auth::csrfToken();
+    return '<input type="hidden" name="csrf_token" value="' . $token . '">';
 }
 
 // ── Session ────────────────────────────────────────────────────────────────

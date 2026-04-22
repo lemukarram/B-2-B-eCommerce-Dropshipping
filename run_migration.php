@@ -54,6 +54,14 @@ try {
         echo "<span style='color: orange;'>~ `buy_price` column in `products` already exists or error: " . htmlspecialchars($e->getMessage()) . "</span><br>";
     }
 
+    // 2d. users.remember_token
+    try {
+        $pdo->exec("ALTER TABLE `users` ADD COLUMN `remember_token` VARCHAR(100) NULL AFTER `password`");
+        echo "<span style='color: green;'>✔ Added `remember_token` to `users` table</span><br>";
+    } catch (\PDOException $e) {
+        echo "<span style='color: orange;'>~ `remember_token` column in `users` already exists</span><br>";
+    }
+
     // 3. Create price_rules table
     echo "<h3>3. Creating Price Rules Table</h3>";
     $pdo->exec("CREATE TABLE IF NOT EXISTS `price_rules` (

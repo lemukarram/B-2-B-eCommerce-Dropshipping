@@ -16,19 +16,13 @@ class GuestMiddleware
 {
     public function handle(Request $request): void
     {
-        if (!Auth::check()) {
-            return;
+        if (Auth::check()) {
+            match (Auth::role()) {
+                'admin'  => Response::redirect('/admin'),
+                'seller' => Response::redirect('/seller'),
+                'store'  => Response::redirect('/store'),
+                default  => Response::redirect('/'),
+            };
         }
-
-        if (Auth::isAdmin()) {
-            Response::redirect('/admin');
-        }
-
-        if (Auth::isApprovedSeller()) {
-            Response::redirect('/seller');
-        }
-
-        // Pending/suspended sellers can still see the login page
-        // (they need to know their status)
     }
 }
