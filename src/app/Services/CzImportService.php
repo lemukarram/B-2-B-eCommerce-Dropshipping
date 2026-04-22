@@ -106,21 +106,21 @@ class CzImportService
         $pdo = Database::getInstance();
 
         if ($product) {
-            // Update - keep buying price as buy_price
+            // Update - keep buying price as buy_price, set stock to 15
             $stmt = $pdo->prepare("UPDATE products SET 
-                title = ?, buy_price = ?, description = ?, category_id = ?, updated_at = NOW() 
+                title = ?, buy_price = ?, description = ?, category_id = ?, stock_quantity = 15, updated_at = NOW() 
                 WHERE id = ?");
             $stmt->execute([$name, $price, $description, $categoryId, $product['id']]);
             $productId = (int)$product['id'];
             $stats['updated']++;
         } else {
-            // Insert
+            // Insert - set stock to 15
             $slug = $this->slugService->generate($name);
             $sku  = 'CZ-' . $pid;
             
             $stmt = $pdo->prepare("INSERT INTO products 
-                (pid, sku, title, slug, description, buy_price, base_price, category_id, is_active) 
-                VALUES (?, ?, ?, ?, ?, ?, ?, ?, 1)");
+                (pid, sku, title, slug, description, buy_price, base_price, category_id, stock_quantity, is_active) 
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, 15, 1)");
             // Initialize base_price same as buy_price until margin is applied
             $stmt->execute([$pid, $sku, $name, $slug, $description, $price, $price, $categoryId]);
             $productId = (int)$pdo->lastInsertId();
