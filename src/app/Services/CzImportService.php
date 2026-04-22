@@ -31,9 +31,17 @@ class CzImportService
      */
     public function process(string $filePath, string $reference, ?string $categoryName = null, ?int $categoryId = null): array
     {
-        $rows = $this->parseXlsx($filePath);
+        set_time_limit(600);
+        ini_set('memory_limit', '1024M');
+
+        try {
+            $rows = $this->parseXlsx($filePath);
+        } catch (\Throwable $e) {
+            return ['errors' => ["Excel Parsing Error: " . $e->getMessage()]];
+        }
+
         if (empty($rows)) {
-            throw new RuntimeException("Excel file is empty or malformed.");
+            return ['errors' => ["The Excel file contains no valid data rows."]];
         }
 
         $pdo = Database::getInstance();
@@ -86,10 +94,13 @@ class CzImportService
         $pid = trim((string)($row['pid'] ?? ''));
         if (empty($pid)) throw new RuntimeException("Missing PID column.");
 
-        $name        = trim((string)($row['name'] ?? $row['product name'] ?? ''));
+        // Clean name and description of potentially breaking characters
+        $name        = $this->sanitizeText((string)($row['name'] ?? $row['product name'] ?? ''));
         $price       = (float)preg_replace('/[^0-9.]/', '', (string)($row['price'] ?? '0'));
-        $description = $this->cleanDescription((string)($row['description'] ?? $row['descriptio'] ?? ''));
+        $description = $this->sanitizeText((string)($row['description'] ?? $row['descriptio'] ?? ''), true);
         $imageName   = trim((string)($row['image name'] ?? $row['local image filename'] ?? ''));
+
+        if (empty($name)) throw new RuntimeException("Product name is empty after sanitization.");
 
         $product = Product::findByPid($pid);
         $pdo = Database::getInstance();
@@ -137,32 +148,63 @@ class CzImportService
         }
     }
 
-    private function cleanDescription(string $html): string
+    private function sanitizeText(string $text, bool $keepHtml = false): string
     {
-        // Remove weird characters but keep HTML structure
-        $html = mb_convert_encoding($html, 'UTF-8', 'UTF-8');
-        // Optional: you can add more aggressive cleaning here if needed
-        return trim($html);
+        // Remove null bytes and handle potential binary data
+        $text = str_replace("\0", '', $text);
+        
+        // Convert encoding to UTF-8 and strip invalid characters
+        $text = mb_convert_encoding($text, 'UTF-8', 'UTF-8');
+        
+        if (!$keepHtml) {
+            $text = strip_tags($text);
+        }
+
+        return trim($text);
     }
 
     private function parseXlsx(string $path): array
     {
-        if (!class_exists(\PhpOffice\PhpSpreadsheet\IOFactory::class)) {
-            throw new RuntimeException('PhpSpreadsheet is missing on server.');
+        if (!is_file($path)) {
+            throw new RuntimeException("File not found at: " . $path);
         }
 
-        $spreadsheet = \PhpOffice\PhpSpreadsheet\IOFactory::load($path);
-        $sheet       = $spreadsheet->getActiveSheet();
-        $data        = $sheet->toArray(null, true, true, true);
+        if (!class_exists(\PhpOffice\PhpSpreadsheet\IOFactory::class)) {
+            throw new RuntimeException('PhpSpreadsheet library is missing on server.');
+        }
+
+        try {
+            $spreadsheet = \PhpOffice\PhpSpreadsheet\IOFactory::load($path);
+        } catch (\Throwable $e) {
+            throw new RuntimeException("Failed to load Excel file: " . $e->getMessage());
+        }
+
+        $sheet = $spreadsheet->getActiveSheet();
+        $data  = $sheet->toArray(null, true, true, true);
 
         if (empty($data)) return [];
 
         $headers = array_map(fn($h) => strtolower(trim((string)$h)), array_shift($data));
         $rows    = [];
 
-        foreach ($data as $row) {
+        $headerCount = count($headers);
+        foreach ($data as $index => $row) {
             if (empty(array_filter($row))) continue;
-            $rows[] = array_combine($headers, $row);
+            
+            // Ensure row has exactly the same number of columns as headers
+            $rowCount = count($row);
+            if ($rowCount > $headerCount) {
+                $row = array_slice($row, 0, $headerCount);
+            } elseif ($rowCount < $headerCount) {
+                $row = array_pad($row, $headerCount, '');
+            }
+
+            try {
+                $rows[] = array_combine($headers, $row);
+            } catch (\Throwable $e) {
+                // Skip if still failing to combine
+                continue;
+            }
         }
 
         return $rows;

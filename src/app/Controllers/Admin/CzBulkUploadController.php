@@ -43,7 +43,13 @@ class CzBulkUploadController
         $reference    = $request->input('reference');
 
         if (($categoryName || $categoryId) && $pending && $reference) {
-            $this->executeImport(STORAGE_PATH . '/uploads/bulk/' . $pending, $reference, $categoryName, $categoryId);
+            $filePath = PUBLIC_PATH . '/uploads/bulk/' . $pending;
+            if (is_file($filePath)) {
+                $this->executeImport($filePath, $reference, $categoryName, $categoryId);
+            } else {
+                Session::flashErrors(['cz_file' => ['Pending file not found. Please upload again.']]);
+                Response::redirect('/admin/products/cz-import');
+            }
             return;
         }
 
