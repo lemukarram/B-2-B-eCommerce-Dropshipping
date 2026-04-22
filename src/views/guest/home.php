@@ -70,6 +70,52 @@
     <?php endif; ?>
 </div>
 
+<!-- How It Works Section -->
+<div class="py-5 mt-5">
+    <div class="text-center mb-5">
+        <h2 class="fw-bold">How It <span class="text-primary">Works</span></h2>
+        <p class="text-muted">Start your business journey in 4 simple steps</p>
+    </div>
+    <div class="row g-4">
+        <div class="col-md-3">
+            <div class="card border-0 shadow-sm rounded-4 h-100 p-4 text-center">
+                <div class="bg-primary-light rounded-circle p-3 mx-auto mb-3" style="width: 70px; height: 70px;">
+                    <i class="bi bi-person-plus text-primary fs-3"></i>
+                </div>
+                <h5 class="fw-bold">1. Register</h5>
+                <p class="small text-muted mb-0">Create your free account and gain instant access to our catalog.</p>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card border-0 shadow-sm rounded-4 h-100 p-4 text-center">
+                <div class="bg-primary-light rounded-circle p-3 mx-auto mb-3" style="width: 70px; height: 70px;">
+                    <i class="bi bi-shop text-primary fs-3"></i>
+                </div>
+                <h5 class="fw-bold">2. Browse</h5>
+                <p class="small text-muted mb-0">Choose from thousands of high-demand wholesale products.</p>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card border-0 shadow-sm rounded-4 h-100 p-4 text-center">
+                <div class="bg-primary-light rounded-circle p-3 mx-auto mb-3" style="width: 70px; height: 70px;">
+                    <i class="bi bi-megaphone text-primary fs-3"></i>
+                </div>
+                <h5 class="fw-bold">3. Promote</h5>
+                <p class="small text-muted mb-0">Promote products on social media and set your own profit margins.</p>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card border-0 shadow-sm rounded-4 h-100 p-4 text-center">
+                <div class="bg-primary-light rounded-circle p-3 mx-auto mb-3" style="width: 70px; height: 70px;">
+                    <i class="bi bi-box-seam text-primary fs-3"></i>
+                </div>
+                <h5 class="fw-bold">4. Earn</h5>
+                <p class="small text-muted mb-0">We handle shipping. You collect the profits directly in your wallet.</p>
+            </div>
+        </div>
+    </div>
+</div>
+
 <div class="bg-white rounded-4 p-5 shadow-sm border mt-5">
     <div class="row align-items-center">
         <div class="col-md-8">

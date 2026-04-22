@@ -21,6 +21,7 @@
                 <li class="nav-item"><a class="nav-link px-3" href="/">Home</a></li>
                 <li class="nav-item"><a class="nav-link px-3" href="/categories">Categories</a></li>
                 <li class="nav-item"><a class="nav-link px-3" href="/products">Products</a></li>
+                <li class="nav-item"><a class="nav-link px-3" href="/faqs">Help</a></li>
             </ul>
             <div class="d-flex gap-2">
                 <a href="/login" class="btn btn-outline-primary border-0">Login</a>

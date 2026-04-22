@@ -53,12 +53,19 @@ class OrderController
     {
         $sellerId = Auth::parentId() ?: 1;
 
-        // More inclusive Pakistani phone regex
-        // Supports: 03..., 923..., +923..., 00923..., 0092 3..., +92 3..., 92 3...
-        // with optional hyphens/spaces
-        $phoneRegex = '/^((\+92)|(0092)|(92)|(0))? ?3[0-9]{2} ?[0-9]{7}$/';
+        // Clean the phone number of spaces and hyphens before validation
+        $phone = $request->post('customer_phone', '');
+        $cleanPhone = str_replace([' ', '-'], '', $phone);
+        
+        // Merge clean phone back into request data for validator to see it
+        $requestData = $request->all();
+        $requestData['customer_phone'] = $cleanPhone;
 
-        $v = new Validator($request->all(), [
+        // Regex for: 03..., 923..., +923..., 00923...
+        // Total digits (excluding prefix): 3 + 9 digits = 10 digits
+        $phoneRegex = '/^((\+92)|(0092)|(92)|(0))?3[0-9]{9}$/';
+
+        $v = new Validator($requestData, [
             'customer_name'     => 'required|max:150',
             'customer_phone'    => 'required|regex:' . $phoneRegex,
             'customer_address'  => 'required',
@@ -68,8 +75,7 @@ class OrderController
 
         if ($v->fails()) {
             Session::flashErrors($v->errors());
-            // Flash everything including items
-            Session::flashOld($request->all());
+            Session::flashOld($request->all()); // Keep the user's original input with spaces/hyphens
             Response::redirect('/store/orders/create');
         }
 
