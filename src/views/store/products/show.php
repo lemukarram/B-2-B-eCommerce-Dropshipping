@@ -62,7 +62,7 @@
 
             <div class="mb-4">
                 <h5 class="fw-bold mb-3">Description</h5>
-                <div class="product-description text-muted">
+                <div class="product-description text-muted" style="white-space: pre-line;">
                     <?= nl2br(e($product['description'])) ?>
                 </div>
             </div>

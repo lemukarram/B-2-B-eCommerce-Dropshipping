@@ -150,13 +150,26 @@ class CzImportService
 
     private function sanitizeText(string $text, bool $keepHtml = false): string
     {
-        // Remove null bytes and handle potential binary data
+        // Remove null bytes
         $text = str_replace("\0", '', $text);
         
-        // Convert encoding to UTF-8 and strip invalid characters
+        // Convert to UTF-8 and strip invalid characters
         $text = mb_convert_encoding($text, 'UTF-8', 'UTF-8');
-        
-        if (!$keepHtml) {
+
+        if ($keepHtml) {
+            // Replace common line separators with standard newline
+            $text = str_replace(["\r\n", "\r", "\xe2\x80\xa8", "\xe2\x80\xa9"], "\n", $text);
+            
+            // If the text has NO newlines but is long, it might be a rich text merge issue
+            // We could try to add newlines before common "Field" names if they are joined
+            $fields = ['Brand Name', 'Model', 'Color', 'Capacity', 'Battery Type', 'Case', 'Display', 'Support', 'Compatible Models', 'More details', 'Specifications'];
+            foreach ($fields as $field) {
+                // If field name is found joined to a previous word (no space or newline)
+                // e.g. "NameASPOR" -> actually "Name\nASPOR" or "most.Key" -> "most.\nKey"
+                // This is a bit aggressive but helps with the user's specific "messed up" issue
+                $text = preg_replace('/([a-z0-9\.])(' . preg_quote($field) . ')/i', "$1\n$2", $text);
+            }
+        } else {
             $text = strip_tags($text);
         }
 
