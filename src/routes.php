@@ -37,6 +37,13 @@ $router->get( '/logout',           [AuthController::class, 'logout'],       ['au
 
 // ── Guest / Public ─────────────────────────────────────────────────────────
 $router->get('/',                          [HomeController::class,    'index'],   []);
+$router->get('/terms',                    [App\Controllers\StaticPageController::class, 'terms']);
+$router->get('/privacy',                  [App\Controllers\StaticPageController::class, 'privacy']);
+$router->get('/about',                    [App\Controllers\StaticPageController::class, 'about']);
+$router->get('/how-it-works',             [App\Controllers\StaticPageController::class, 'howItWorks']);
+$router->get('/how-to-register',          [App\Controllers\StaticPageController::class, 'howToRegister']);
+$router->get('/faqs',                     [App\Controllers\StaticPageController::class, 'faqs']);
+$router->get('/contact',                  [App\Controllers\StaticPageController::class, 'contact']);
 $router->get('/categories',                [GuestCategory::class,     'index'],   []);
 $router->get('/categories/:slug',          [GuestCategory::class,     'show'],    []);
 $router->get('/products',                  [GuestProduct::class,      'index'],   []);

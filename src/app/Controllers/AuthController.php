@@ -89,10 +89,12 @@ class AuthController
             Response::abort(403, 'Registration is currently closed.');
         }
 
+        $phoneRegex = '/^((\+92)|(0092)|(92)|(0))? ?3[0-9]{2} ?[0-9]{7}$/';
+
         $v = new Validator($request->all(), [
             'name'          => 'required|max:150',
             'email'         => 'required|email|max:255',
-            'phone'         => 'required|regex:/^03[0-9]{9}$/',
+            'phone'         => 'required|regex:' . $phoneRegex,
             'business_name' => 'required|max:200',
             'password'      => 'required|min:8|confirmed',
         ]);

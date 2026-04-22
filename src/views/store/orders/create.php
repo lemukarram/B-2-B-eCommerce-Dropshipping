@@ -233,9 +233,21 @@ function calculateTotals() {
     }
 }
 
-// Add first item on load
+// Add first item on load, or re-populate old items
 window.onload = function() {
-    addItem();
+    <?php if (isset($old['items']) && is_array($old['items'])): ?>
+        <?php foreach ($old['items'] as $index => $item): ?>
+            addItem();
+            const lastRow = document.getElementById('itemsContainer').lastElementChild;
+            const select = lastRow.querySelector('.product-select');
+            select.value = "<?= $item['product_id'] ?>";
+            lastRow.querySelector('.qty-input').value = "<?= $item['quantity'] ?>";
+            lastRow.querySelector('.selling-input').value = "<?= $item['selling_price'] ?>";
+            updateRowPrices(select);
+        <?php endforeach; ?>
+    <?php else: ?>
+        addItem();
+    <?php endif; ?>
 };
 </script>
 

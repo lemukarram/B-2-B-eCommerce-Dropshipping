@@ -53,9 +53,14 @@ class OrderController
     {
         $sellerId = Auth::parentId() ?: 1;
 
+        // More inclusive Pakistani phone regex
+        // Supports: 03..., 923..., +923..., 00923..., 0092 3..., +92 3..., 92 3...
+        // with optional hyphens/spaces
+        $phoneRegex = '/^((\+92)|(0092)|(92)|(0))? ?3[0-9]{2} ?[0-9]{7}$/';
+
         $v = new Validator($request->all(), [
             'customer_name'     => 'required|max:150',
-            'customer_phone'    => 'required|regex:/^03[0-9]{9}$/',
+            'customer_phone'    => 'required|regex:' . $phoneRegex,
             'customer_address'  => 'required',
             'customer_city'     => 'required|max:100',
             'customer_province' => 'required|max:100',
@@ -63,10 +68,8 @@ class OrderController
 
         if ($v->fails()) {
             Session::flashErrors($v->errors());
-            Session::flashOld($request->only([
-                'customer_name', 'customer_phone', 'customer_address',
-                'customer_city', 'customer_province', 'notes',
-            ]));
+            // Flash everything including items
+            Session::flashOld($request->all());
             Response::redirect('/store/orders/create');
         }
 
