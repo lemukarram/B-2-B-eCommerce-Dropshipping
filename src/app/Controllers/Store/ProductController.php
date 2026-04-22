@@ -17,11 +17,9 @@ class ProductController
     {
         $page       = max(1, (int)$request->get('page', 1));
         $categoryId = $request->get('category_id') ? (int)$request->get('category_id') : null;
-        $sellerId   = Auth::parentId();
-
-        if (!$sellerId) {
-            Response::abort(403, 'Unauthorized. No parent seller associated with this account.');
-        }
+        
+        // Default to admin (id 1) if no parent seller is assigned
+        $sellerId   = Auth::parentId() ?: 1;
 
         $result     = Product::storeList($sellerId, $page, 24, $categoryId);
         $categories = Category::allActive();
@@ -36,9 +34,9 @@ class ProductController
     public function show(Request $request): void
     {
         $product  = Product::findBySlug($request->param('slug'));
-        $sellerId = Auth::parentId();
+        $sellerId = Auth::parentId() ?: 1;
 
-        if (!$product || !$sellerId) {
+        if (!$product) {
             Response::abort(404, 'Product not found.');
         }
 

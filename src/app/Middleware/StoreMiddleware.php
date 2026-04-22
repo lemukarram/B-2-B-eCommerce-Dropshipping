@@ -20,7 +20,8 @@ class StoreMiddleware
             Response::redirect('/login');
         }
 
-        if (!Auth::isStore()) {
+        // Allow Admin, Seller, and Store roles
+        if (!Auth::isStore() && !Auth::isSeller() && !Auth::isAdmin()) {
             Response::abort(403, 'Access denied.');
         }
 
