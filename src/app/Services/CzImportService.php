@@ -86,10 +86,10 @@ class CzImportService
         $pid = trim((string)($row['pid'] ?? ''));
         if (empty($pid)) throw new RuntimeException("Missing PID column.");
 
-        $name        = trim((string)($row['name'] ?? ''));
+        $name        = trim((string)($row['name'] ?? $row['product name'] ?? ''));
         $price       = (float)preg_replace('/[^0-9.]/', '', (string)($row['price'] ?? '0'));
         $description = $this->cleanDescription((string)($row['description'] ?? $row['descriptio'] ?? ''));
-        $imageName   = trim((string)($row['image name'] ?? ''));
+        $imageName   = trim((string)($row['image name'] ?? $row['local image filename'] ?? ''));
 
         $product = Product::findByPid($pid);
         $pdo = Database::getInstance();
