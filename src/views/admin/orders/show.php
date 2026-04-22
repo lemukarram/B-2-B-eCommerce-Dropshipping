@@ -11,7 +11,8 @@
                 <table class="table align-middle mb-0">
                     <thead class="table-light">
                         <tr>
-                            <th>Product</th>
+                            <th style="width: 80px;">Image</th>
+                            <th>Product Details</th>
                             <th class="text-end">Base Price</th>
                             <th class="text-end">Selling Price</th>
                             <th class="text-end">Qty</th>
@@ -21,7 +22,19 @@
                     <tbody>
                         <?php foreach ($items as $item): ?>
                         <tr>
-                            <td class="fw-medium text-dark"><?= e($item['product_title']) ?></td>
+                            <td>
+                                <?php if ($item['image_path']): ?>
+                                    <img src="<?= e($item['image_path']) ?>" class="img-thumbnail rounded-3" style="width: 60px; height: 60px; object-fit: contain;">
+                                <?php else: ?>
+                                    <div class="bg-light rounded-3 d-flex align-items-center justify-content-center" style="width: 60px; height: 60px;">
+                                        <i class="bi bi-image text-muted"></i>
+                                    </div>
+                                <?php endif; ?>
+                            </td>
+                            <td>
+                                <div class="fw-bold text-dark mb-0"><?= e($item['product_title']) ?></div>
+                                <div class="text-muted small fw-bold">CZ REF: <?= e($item['cat_reference'] ?? '—') ?>-<?= e($item['pid'] ?? '—') ?></div>
+                            </td>
                             <td class="text-end">Rs. <?= number_format($item['base_price_snapshot'], 2) ?></td>
                             <td class="text-end">Rs. <?= number_format($item['selling_price'], 2) ?></td>
                             <td class="text-end"><?= (int)$item['quantity'] ?></td>
@@ -31,15 +44,15 @@
                     </tbody>
                     <tfoot class="bg-light">
                         <tr>
-                            <td colspan="4" class="text-end py-3">Total Selling Price:</td>
+                            <td colspan="5" class="text-end py-3">Total Selling Price:</td>
                             <td class="text-end fw-bold py-3 text-dark fs-5">Rs. <?= number_format($order['total_selling_price'], 2) ?></td>
                         </tr>
                         <tr>
-                            <td colspan="4" class="text-end text-muted small py-2">Delivery Charge:</td>
+                            <td colspan="5" class="text-end text-muted small py-2">Delivery Charge:</td>
                             <td class="text-end text-muted small py-2">Rs. <?= number_format($order['delivery_charge'], 2) ?></td>
                         </tr>
                         <tr class="table-primary border-top border-2">
-                            <td colspan="4" class="text-end fw-bold py-3">Grand Total (Customer Pays):</td>
+                            <td colspan="5" class="text-end fw-bold py-3">Grand Total (Customer Pays):</td>
                             <td class="text-end fw-bold py-3 fs-5">Rs. <?= number_format($order['total_selling_price'] + $order['delivery_charge'], 2) ?></td>
                         </tr>
                     </tfoot>
@@ -69,14 +82,14 @@
                         </thead>
                         <tbody>
                             <tr class="text-center align-middle">
-                                <td><?= number_format($order['total_buy_price'], 0) ?></td>
-                                <td><?= number_format($order['total_base_price'], 0) ?></td>
-                                <td class="fw-bold text-primary"><?= number_format($order['total_base_price'] - $order['total_buy_price'], 0) ?></td>
-                                <td><?= number_format($order['total_wholesale_price'], 0) ?></td>
-                                <td class="text-success fw-bold"><?= number_format($order['total_wholesale_price'] - $order['total_base_price'], 0) ?></td>
-                                <td><?= number_format($order['total_selling_price'], 0) ?></td>
-                                <td class="text-success fw-bold"><?= number_format($order['total_selling_price'] - $order['total_wholesale_price'], 0) ?></td>
-                                <td class="fw-bold bg-dark text-white"><?= number_format($order['total_selling_price'] + $order['delivery_charge'], 0) ?></td>
+                                <td><?= number_format((float)($order['total_buy_price'] ?? 0), 0) ?></td>
+                                <td><?= number_format((float)($order['total_base_price'] ?? 0), 0) ?></td>
+                                <td class="fw-bold text-primary"><?= number_format((float)(($order['total_base_price'] ?? 0) - ($order['total_buy_price'] ?? 0)), 0) ?></td>
+                                <td><?= number_format((float)($order['total_wholesale_price'] ?? 0), 0) ?></td>
+                                <td class="text-success fw-bold"><?= number_format((float)(($order['total_wholesale_price'] ?? 0) - ($order['total_base_price'] ?? 0)), 0) ?></td>
+                                <td><?= number_format((float)($order['total_selling_price'] ?? 0), 0) ?></td>
+                                <td class="text-success fw-bold"><?= number_format((float)(($order['total_selling_price'] ?? 0) - ($order['total_wholesale_price'] ?? 0)), 0) ?></td>
+                                <td class="fw-bold bg-dark text-white"><?= number_format((float)(($order['total_selling_price'] ?? 0) + ($order['delivery_charge'] ?? 0)), 0) ?></td>
                             </tr>
                         </tbody>
                     </table>

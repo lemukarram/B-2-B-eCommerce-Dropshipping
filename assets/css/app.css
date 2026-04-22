@@ -289,10 +289,46 @@ main > header {
     animation: fadeIn 0.5s cubic-bezier(0.4, 0, 0.2, 1) forwards;
 }
 
-/* Custom Scrollbar */
-::-webkit-scrollbar {
-    width: 8px;
-    height: 8px;
+/* Sidebar Transitions & States */
+.sidebar {
+    transition: transform var(--transition-normal), width var(--transition-normal);
+}
+
+.sidebar.collapsed {
+    width: 0 !important;
+    padding-left: 0 !important;
+    padding-right: 0 !important;
+    transform: translateX(-100%);
+}
+
+#main-content {
+    transition: margin-left var(--transition-normal);
+}
+
+.sidebar-toggle {
+    cursor: pointer;
+    padding: 0.5rem;
+    border-radius: var(--border-radius-sm);
+    transition: background var(--transition-fast);
+}
+
+.sidebar-toggle:hover {
+    background: var(--bg-light);
+}
+
+@media (max-width: 991.98px) {
+    .sidebar {
+        position: fixed;
+        top: 0;
+        left: 0;
+        bottom: 0;
+        width: 280px !important;
+        transform: translateX(-100%);
+    }
+    
+    .sidebar.show {
+        transform: translateX(0);
+    }
 }
 ::-webkit-scrollbar-track {
     background: #f1f5f9;

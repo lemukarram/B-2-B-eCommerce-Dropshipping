@@ -10,8 +10,8 @@
 </head>
 <body>
 
-<div class="d-flex">
-    <div class="sidebar p-3 d-flex flex-column" style="width: 260px; flex-shrink: 0;">
+<div class="d-flex" id="wrapper">
+    <div class="sidebar p-3 d-flex flex-column" id="sidebar" style="width: 260px; flex-shrink: 0;">
         <a class="navbar-brand fw-bold text-white fs-4 mb-4 px-3" href="/seller">
             EMAG<span class="text-primary">.PK</span>
             <span class="badge bg-primary fs-6 align-middle ms-1" style="font-size: 0.6rem !important;">Seller</span>
@@ -57,21 +57,37 @@
         </div>
     </div>
 
-    <main class="flex-grow-1" style="min-width:0; background: var(--bg-light); min-height: 100vh;">
+    <main class="flex-grow-1" id="main-content" style="min-width:0; background: var(--bg-light); min-height: 100vh;">
         <header class="bg-white border-bottom px-4 py-3 sticky-top d-flex align-items-center justify-content-between">
-            <h5 class="mb-0 fw-bold"><?= e($pageTitle ?? 'Dashboard') ?></h5>
+            <div class="d-flex align-items-center">
+                <button class="btn btn-link text-dark p-0 me-3" id="toggle-sidebar">
+                    <i class="bi bi-list fs-4"></i>
+                </button>
+                <h5 class="mb-0 fw-bold"><?= e($pageTitle ?? 'Dashboard') ?></h5>
+            </div>
             <div class="d-flex align-items-center">
                 <a href="/seller/profile" class="text-decoration-none text-dark me-3">
                     <i class="bi bi-person-circle me-1"></i> Profile
                 </a>
             </div>
         </header>
-        <div class="p-4">
+        <div class="p-4 animate-fade-in">
             <?php include VIEW_PATH . '/components/flash.php'; ?>
             <?= $content ?>
         </div>
     </main>
 </div>
+
+<script>
+document.getElementById('toggle-sidebar').addEventListener('click', function() {
+    const sidebar = document.getElementById('sidebar');
+    if (window.innerWidth >= 992) {
+        sidebar.classList.toggle('collapsed');
+    } else {
+        sidebar.classList.toggle('show');
+    }
+});
+</script>
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 <script src="/assets/js/app.js"></script>

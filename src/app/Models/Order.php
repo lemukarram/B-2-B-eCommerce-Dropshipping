@@ -38,7 +38,13 @@ class Order extends BaseModel
     public static function itemsFor(int $orderId): array
     {
         return static::query(
-            'SELECT * FROM order_items WHERE order_id = ? ORDER BY id ASC',
+            'SELECT oi.*, p.pid, c.reference as cat_reference, pi.image_path
+             FROM order_items oi
+             LEFT JOIN products p ON p.id = oi.product_id
+             LEFT JOIN categories c ON c.id = p.category_id
+             LEFT JOIN product_images pi ON pi.product_id = oi.product_id AND pi.is_primary = 1
+             WHERE oi.order_id = ? 
+             ORDER BY oi.id ASC',
             [$orderId]
         )->fetchAll();
     }
