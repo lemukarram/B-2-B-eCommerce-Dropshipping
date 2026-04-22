@@ -3,8 +3,8 @@
     <div class="col-md-6">
         <div class="card shadow-sm">
             <div class="card-body p-4">
-                <h4 class="card-title mb-1">Become a Seller</h4>
-                <p class="text-muted mb-4">After registration, your account will be reviewed by admin before activation.</p>
+                <h4 class="card-title mb-1">Create Store Account</h4>
+                <p class="text-muted mb-4">Join our network and start placing dropshipping orders immediately.</p>
 
                 <form method="POST" action="/register" novalidate>
                     <?php include VIEW_PATH . '/components/csrf_input.php'; ?>
