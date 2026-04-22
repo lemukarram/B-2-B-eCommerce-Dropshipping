@@ -153,10 +153,12 @@ class Product extends BaseModel
 
         $rows = static::query(
             "SELECT p.*, c.name AS category_name,
-                    scm.markup_type, scm.markup_value
+                    scm.markup_type, scm.markup_value,
+                    pi.image_path
              FROM products p
              LEFT JOIN categories c ON c.id = p.category_id
              LEFT JOIN seller_category_markups scm ON scm.category_id = p.category_id AND scm.seller_id = ?
+             LEFT JOIN product_images pi ON pi.product_id = p.id AND pi.is_primary = 1
              WHERE {$where}
              ORDER BY p.title ASC
              LIMIT ? OFFSET ?",

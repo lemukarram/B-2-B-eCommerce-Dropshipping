@@ -109,18 +109,26 @@
 <template id="itemTemplate">
     <div class="item-row bg-light p-3 rounded-4 mb-3 border position-relative overflow-hidden">
         <button type="button" class="btn-close position-absolute top-0 end-0 m-2 small remove-btn" onclick="removeItem(this)"></button>
-        <div class="row g-2">
-            <div class="col-md-12 mb-2">
+        <div class="row g-3 align-items-center">
+            <div class="col-auto">
+                <div class="bg-white rounded-3 shadow-sm d-flex align-items-center justify-content-center overflow-hidden" style="width: 70px; height: 70px;">
+                    <img src="" class="item-img w-100 h-100 object-fit-contain d-none">
+                    <i class="bi bi-image text-muted item-img-placeholder"></i>
+                </div>
+            </div>
+            <div class="col">
                 <label class="form-label text-muted small fw-bold text-uppercase">Select Product</label>
                 <select name="items[INDEX][product_id]" class="form-select product-select border-0 bg-white shadow-sm rounded-3" required onchange="updateRowPrices(this)">
-                    <option value="" data-price="0">-- Choose Product --</option>
+                    <option value="" data-price="0" data-img="">-- Choose Product --</option>
                     <?php foreach($products as $p): ?>
-                        <option value="<?= $p['id'] ?>" data-price="<?= $p['wholesale_price'] ?>" <?= (int)($_GET['product_id'] ?? 0) === (int)$p['id'] ? 'selected' : '' ?>>
+                        <option value="<?= $p['id'] ?>" data-price="<?= $p['wholesale_price'] ?>" data-img="<?= e($p['image_path'] ?? '') ?>" <?= (int)($_GET['product_id'] ?? 0) === (int)$p['id'] ? 'selected' : '' ?>>
                             <?= e($p['title']) ?> (Wholesale: Rs. <?= number_format($p['wholesale_price'], 2) ?>)
                         </option>
                     <?php endforeach; ?>
                 </select>
             </div>
+        </div>
+        <div class="row g-2 mt-2">
             <div class="col-md-3">
                 <label class="form-label text-muted small fw-bold text-uppercase">Qty</label>
                 <input type="number" name="items[INDEX][quantity]" class="form-control border-0 bg-white shadow-sm rounded-3 qty-input" value="1" min="1" required oninput="calculateTotals()">
@@ -172,12 +180,25 @@ function updateRowPrices(select) {
     const row = select.closest('.item-row');
     const option = select.options[select.selectedIndex];
     const wholesale = parseFloat(option.getAttribute('data-price')) || 0;
+    const imgPath = option.getAttribute('data-img');
     
     row.querySelector('.wholesale-display').value = wholesale.toFixed(2);
     
+    // Update Image
+    const imgEl = row.querySelector('.item-img');
+    const placeholderEl = row.querySelector('.item-img-placeholder');
+    if (imgPath) {
+        imgEl.src = imgPath;
+        imgEl.classList.remove('d-none');
+        placeholderEl.classList.add('d-none');
+    } else {
+        imgEl.classList.add('d-none');
+        placeholderEl.classList.remove('d-none');
+    }
+    
     // Auto-fill selling price if empty (wholesale + 20% margin as default suggestion)
     const sellingInput = row.querySelector('.selling-input');
-    if (!sellingInput.value) {
+    if (!sellingInput.value || sellingInput.value == 0) {
         sellingInput.value = Math.ceil(wholesale * 1.2 / 5) * 5; // Round to nearest 5
     }
     

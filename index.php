@@ -71,7 +71,7 @@ function e(mixed $value): string
 function csrf_input(): string
 {
     $token = \Core\Auth::csrfToken();
-    return '<input type="hidden" name="csrf_token" value="' . $token . '">';
+    return '<input type="hidden" name="_csrf_token" value="' . $token . '">';
 }
 
 // ── Session ────────────────────────────────────────────────────────────────
