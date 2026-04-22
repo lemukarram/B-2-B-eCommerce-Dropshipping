@@ -18,6 +18,16 @@ class Category extends BaseModel
         return $row ?: null;
     }
 
+    public static function findByReference(string $reference): ?array
+    {
+        $stmt = static::query(
+            'SELECT * FROM categories WHERE reference = ? LIMIT 1',
+            [$reference]
+        );
+        $row = $stmt->fetch();
+        return $row ?: null;
+    }
+
     public static function allActive(): array
     {
         return static::query(

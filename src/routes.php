@@ -61,6 +61,10 @@ $router->post('/admin/products/quick-update',     [AdminProduct::class,   'quick
 $router->get( '/admin/products/bulk-upload',     [AdminBulkUpload::class, 'show'],   ['admin']);
 $router->post('/admin/products/bulk-upload',     [AdminBulkUpload::class, 'process'],['admin', 'csrf']);
 
+// CZ Import
+$router->get( '/admin/products/cz-import',       [App\Controllers\Admin\CzBulkUploadController::class, 'show'],   ['admin']);
+$router->post('/admin/products/cz-import',      [App\Controllers\Admin\CzBulkUploadController::class, 'process'],['admin', 'csrf']);
+
 $router->get( '/admin/products/create',          [AdminProduct::class,   'create'],  ['admin']);
 $router->post('/admin/products',                 [AdminProduct::class,   'store'],   ['admin', 'csrf']);
 $router->get( '/admin/products/:id/edit',        [AdminProduct::class,   'edit'],    ['admin']);

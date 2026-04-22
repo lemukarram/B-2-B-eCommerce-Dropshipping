@@ -33,6 +33,9 @@
             <a class="nav-link <?= str_contains($_SERVER['REQUEST_URI'], '/admin/products/bulk-upload') ? 'active' : '' ?>" href="/admin/products/bulk-upload">
                 <i class="bi bi-cloud-arrow-up-fill"></i> Bulk Upload
             </a>
+            <a class="nav-link <?= str_contains($_SERVER['REQUEST_URI'], '/admin/products/cz-import') ? 'active' : '' ?>" href="/admin/products/cz-import">
+                <i class="bi bi-file-earmark-excel-fill text-info"></i> CZ Import
+            </a>
 
             <small class="text-uppercase text-muted fw-bold mt-4 mb-2 px-3" style="font-size: 0.7rem; letter-spacing: 0.05rem;">Commerce</small>
             <a class="nav-link <?= str_contains($_SERVER['REQUEST_URI'], '/admin/orders') ? 'active' : '' ?>" href="/admin/orders">

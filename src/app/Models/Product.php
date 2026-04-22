@@ -8,6 +8,13 @@ class Product extends BaseModel
 {
     protected static string $table = 'products';
 
+    public static function findByPid(string $pid): ?array
+    {
+        $stmt = static::query('SELECT * FROM products WHERE pid = ? LIMIT 1', [$pid]);
+        $row  = $stmt->fetch();
+        return $row ?: null;
+    }
+
     public static function findBySlug(string $slug): ?array
     {
         $stmt = static::query(
