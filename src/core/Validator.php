@@ -42,7 +42,9 @@ class Validator
 
         foreach ($this->rules as $field => $ruleString) {
             $value = $this->data[$field] ?? null;
-            $rules = explode('|', $ruleString);
+            
+            // Split by pipe but ignore pipes inside regex patterns /.../
+            $rules = preg_split('/\|(?![^/]*\/)/', $ruleString);
 
             foreach ($rules as $rule) {
                 [$name, $param] = $this->parseRule($rule);

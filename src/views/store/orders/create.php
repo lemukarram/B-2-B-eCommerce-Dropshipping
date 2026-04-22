@@ -83,6 +83,10 @@
                                     <span class="text-muted">Delivery Charge</span>
                                     <span class="fw-bold">Rs. <?= number_format(\App\Models\Setting::deliveryCharge(), 2) ?></span>
                                 </div>
+                                <div class="d-flex justify-content-between mb-2 border-top pt-2">
+                                    <span class="fw-bold">Grand Total (Customer Pays)</span>
+                                    <span class="fw-bold text-primary" id="grandTotal">Rs. 0.00</span>
+                                </div>
                                 <hr class="my-3">
                                 <div class="d-flex justify-content-between mb-0">
                                     <span class="fs-5 fw-bold">Your Potential Profit</span>
@@ -220,6 +224,9 @@ function calculateTotals() {
     
     document.getElementById('wholesaleTotal').innerText = 'Rs. ' + totalWholesale.toLocaleString(undefined, {minimumFractionDigits: 2});
     
+    const grandTotal = totalSelling + deliveryCharge;
+    document.getElementById('grandTotal').innerText = 'Rs. ' + grandTotal.toLocaleString(undefined, {minimumFractionDigits: 2});
+
     const profit = totalSelling - totalWholesale;
     const profitEl = document.getElementById('potentialProfit');
     profitEl.innerText = 'Rs. ' + profit.toLocaleString(undefined, {minimumFractionDigits: 2});
