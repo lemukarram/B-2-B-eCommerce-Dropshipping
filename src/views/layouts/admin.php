@@ -45,7 +45,10 @@
                 <i class="bi bi-currency-dollar"></i> Payments
             </a>
             <a class="nav-link <?= str_contains($_SERVER['REQUEST_URI'], '/admin/sellers') ? 'active' : '' ?>" href="/admin/sellers">
-                <i class="bi bi-people-fill"></i> Sellers
+                <i class="bi bi-people-fill text-primary"></i> Sellers
+            </a>
+            <a class="nav-link <?= str_contains($_SERVER['REQUEST_URI'], '/admin/stores') ? 'active' : '' ?>" href="/admin/stores">
+                <i class="bi bi-shop text-info"></i> Stores
             </a>
 
             <small class="text-uppercase text-muted fw-bold mt-4 mb-2 px-3" style="font-size: 0.7rem; letter-spacing: 0.05rem;">Analytics</small>

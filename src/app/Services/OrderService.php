@@ -32,6 +32,7 @@ class OrderService
         $pdo = Database::getInstance();
 
         $deliveryCharge = Setting::deliveryCharge();
+        $totalBuy       = '0.00';
         $totalBase      = '0.00';
         $totalWholesale = '0.00';
         $totalSelling   = '0.00';
@@ -68,13 +69,15 @@ class OrderService
             $resolvedItems[] = [
                 'product_id'               => $product['id'],
                 'product_title'            => $product['title'],
+                'buy_price_snapshot'       => $product['buy_price'],
                 'base_price_snapshot'      => $product['base_price'],
                 'wholesale_price_snapshot' => $wholesalePrice,
                 'selling_price'            => $item['selling_price'],
                 'quantity'                 => $qty,
             ];
 
-            $totalBase      = bcadd($totalBase,      bcmul($product['base_price'], (string)$qty, 2), 2);
+            $totalBuy       = bcadd($totalBuy,       bcmul((string)$product['buy_price'], (string)$qty, 2), 2);
+            $totalBase      = bcadd($totalBase,      bcmul((string)$product['base_price'], (string)$qty, 2), 2);
             $totalWholesale = bcadd($totalWholesale, bcmul($wholesalePrice,        (string)$qty, 2), 2);
             $totalSelling   = bcadd($totalSelling,   bcmul($item['selling_price'], (string)$qty, 2), 2);
         }
@@ -88,8 +91,8 @@ class OrderService
                 'INSERT INTO orders
                  (user_id, parent_seller_id, order_number, customer_name, customer_phone,
                   customer_address, customer_city, customer_province, notes,
-                  total_selling_price, total_wholesale_price, total_base_price, delivery_charge, status)
-                 VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)'
+                  total_buy_price, total_selling_price, total_wholesale_price, total_base_price, delivery_charge, status)
+                 VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)'
             );
             $stmt->execute([
                 $userId,
@@ -101,6 +104,7 @@ class OrderService
                 $data['customer_city'],
                 $data['customer_province'],
                 $data['notes'] ?? null,
+                $totalBuy,
                 $totalSelling,
                 $totalWholesale,
                 $totalBase,
@@ -111,8 +115,8 @@ class OrderService
 
             $itemStmt = $pdo->prepare(
                 'INSERT INTO order_items
-                 (order_id, product_id, product_title, base_price_snapshot, wholesale_price_snapshot, selling_price, quantity)
-                 VALUES (?, ?, ?, ?, ?, ?, ?)'
+                 (order_id, product_id, product_title, buy_price_snapshot, base_price_snapshot, wholesale_price_snapshot, selling_price, quantity)
+                 VALUES (?, ?, ?, ?, ?, ?, ?, ?)'
             );
 
             foreach ($resolvedItems as $item) {
@@ -120,6 +124,7 @@ class OrderService
                     $orderId,
                     $item['product_id'],
                     $item['product_title'],
+                    $item['buy_price_snapshot'],
                     $item['base_price_snapshot'],
                     $item['wholesale_price_snapshot'],
                     $item['selling_price'],

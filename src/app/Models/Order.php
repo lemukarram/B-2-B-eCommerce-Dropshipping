@@ -21,7 +21,9 @@ class Order extends BaseModel
     public static function withUser(int $id): ?array
     {
         $stmt = static::query(
-            'SELECT o.*, u.name AS user_name, u.email AS user_email, p.name AS seller_name
+            'SELECT o.*, 
+                    u.name AS user_name, u.email AS user_email, u.role AS user_role,
+                    p.name AS seller_name, p.email AS seller_email
              FROM orders o
              JOIN users u ON u.id = o.user_id
              LEFT JOIN users p ON p.id = o.parent_seller_id
@@ -107,7 +109,7 @@ class Order extends BaseModel
         )->fetchColumn();
 
         $rows = static::query(
-            "SELECT o.*, u.name AS user_name, p.name AS seller_name
+            "SELECT o.*, u.name AS user_name, u.email AS user_email, p.name AS seller_name
              FROM orders o
              JOIN users u ON u.id = o.user_id
              LEFT JOIN users p ON p.id = o.parent_seller_id
