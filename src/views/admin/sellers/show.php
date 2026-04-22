@@ -24,23 +24,40 @@
                         ?>
                         <span class="badge bg-<?= $badge ?>"><?= e($seller['status']) ?></span>
                     </dd>
+                    <dt class="col-5">Role</dt>
+                    <dd class="col-7">
+                        <span class="badge bg-<?= $seller['role'] === 'seller' ? 'primary' : 'info' ?>"><?= ucfirst(e($seller['role'])) ?></span>
+                    </dd>
                     <dt class="col-5">Joined</dt>   <dd class="col-7"><?= date('d M Y', strtotime($seller['created_at'])) ?></dd>
                 </dl>
             </div>
-            <div class="card-footer">
-                <?php if ($seller['status'] !== 'approved'): ?>
-                <form method="POST" action="/admin/sellers/<?= $seller['id'] ?>/approve" class="d-inline">
+            <div class="card-footer d-flex flex-column gap-2">
+                <div>
+                    <?php if ($seller['status'] !== 'approved'): ?>
+                    <form method="POST" action="/admin/sellers/<?= $seller['id'] ?>/approve" class="d-inline">
+                        <?php include VIEW_PATH . '/components/csrf_input.php'; ?>
+                        <button class="btn btn-sm btn-success">Approve</button>
+                    </form>
+                    <?php endif; ?>
+                    <?php if ($seller['status'] !== 'suspended'): ?>
+                    <form method="POST" action="/admin/sellers/<?= $seller['id'] ?>/suspend" class="d-inline"
+                          onsubmit="return confirm('Suspend this user?')">
+                        <?php include VIEW_PATH . '/components/csrf_input.php'; ?>
+                        <button class="btn btn-sm btn-danger">Suspend</button>
+                    </form>
+                    <?php endif; ?>
+                </div>
+                
+                <hr class="my-1">
+
+                <form method="POST" action="/admin/sellers/<?= $seller['id'] ?>/role" class="d-flex gap-2 align-items-center">
                     <?php include VIEW_PATH . '/components/csrf_input.php'; ?>
-                    <button class="btn btn-sm btn-success">Approve</button>
+                    <select name="role" class="form-select form-select-sm" style="width: auto;">
+                        <option value="store" <?= $seller['role'] === 'store' ? 'selected' : '' ?>>Store</option>
+                        <option value="seller" <?= $seller['role'] === 'seller' ? 'selected' : '' ?>>Seller</option>
+                    </select>
+                    <button class="btn btn-sm btn-outline-primary">Change Role</button>
                 </form>
-                <?php endif; ?>
-                <?php if ($seller['status'] !== 'suspended'): ?>
-                <form method="POST" action="/admin/sellers/<?= $seller['id'] ?>/suspend" class="d-inline"
-                      onsubmit="return confirm('Suspend this seller?')">
-                    <?php include VIEW_PATH . '/components/csrf_input.php'; ?>
-                    <button class="btn btn-sm btn-danger">Suspend</button>
-                </form>
-                <?php endif; ?>
             </div>
         </div>
 

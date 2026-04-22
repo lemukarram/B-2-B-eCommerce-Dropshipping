@@ -82,6 +82,7 @@ $router->get( '/admin/sellers',                  [AdminSeller::class,    'index'
 $router->get( '/admin/sellers/:id',              [AdminSeller::class,    'show'],    ['admin']);
 $router->post('/admin/sellers/:id/approve',      [AdminSeller::class,    'approve'], ['admin', 'csrf']);
 $router->post('/admin/sellers/:id/suspend',      [AdminSeller::class,    'suspend'], ['admin', 'csrf']);
+$router->post('/admin/sellers/:id/role',         [AdminSeller::class,    'updateRole'], ['admin', 'csrf']);
 
 // Payments
 $router->get( '/admin/payments',                 [AdminPayment::class,   'index'],   ['admin']);

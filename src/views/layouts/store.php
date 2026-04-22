@@ -59,7 +59,7 @@
         <header class="bg-white border-bottom px-4 py-3 sticky-top d-flex align-items-center justify-content-between">
             <h5 class="mb-0 fw-bold"><?= e($pageTitle ?? 'Dashboard') ?></h5>
         </header>
-        <div class="p-4">
+        <div class="p-4 animate-fade-in">
             <?php include VIEW_PATH . '/components/flash.php'; ?>
             <?= $content ?>
         </div>

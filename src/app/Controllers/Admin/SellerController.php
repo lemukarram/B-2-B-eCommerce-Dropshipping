@@ -25,7 +25,7 @@ class SellerController
         $pdo    = Database::getInstance();
         $offset = ($page - 1) * 20;
 
-        $countStmt = $pdo->prepare("SELECT COUNT(*) FROM users WHERE role = 'seller' AND status = ?");
+        $countStmt = $pdo->prepare("SELECT COUNT(*) FROM users WHERE role IN ('seller', 'store') AND status = ?");
         $countStmt->execute([$status]);
         $total = (int) $countStmt->fetchColumn();
 
@@ -33,7 +33,7 @@ class SellerController
             "SELECT u.*, sp.business_name, sp.city
              FROM users u
              LEFT JOIN seller_profiles sp ON sp.user_id = u.id
-             WHERE u.role = 'seller' AND u.status = ?
+             WHERE u.role IN ('seller', 'store') AND u.status = ?
              ORDER BY u.created_at DESC
              LIMIT 20 OFFSET ?"
         );
@@ -55,13 +55,13 @@ class SellerController
             "SELECT u.*, sp.business_name, sp.address, sp.city, sp.province
              FROM users u
              LEFT JOIN seller_profiles sp ON sp.user_id = u.id
-             WHERE u.id = ? AND u.role = 'seller' LIMIT 1"
+             WHERE u.id = ? AND u.role IN ('seller', 'store') LIMIT 1"
         );
         $stmt->execute([$id]);
         $seller = $stmt->fetch();
 
         if (!$seller) {
-            Response::abort(404, 'Seller not found.');
+            Response::abort(404, 'User not found.');
         }
 
         $wallet       = UserWallet::findByUserId($id);
@@ -73,6 +73,21 @@ class SellerController
             'orders'  => $ordersResult['data'],
             'success' => \Core\Session::getFlash('success'),
         ], 'admin');
+    }
+
+    public function updateRole(Request $request): void
+    {
+        $id = (int)$request->param('id');
+        $role = $request->post('role');
+
+        if (in_array($role, ['seller', 'store'])) {
+            User::update($id, ['role' => $role]);
+            Session::flash('success', 'User role updated successfully.');
+        } else {
+            Session::flashErrors(['role' => ['Invalid role selected.']]);
+        }
+
+        Response::redirect('/admin/sellers/' . $id);
     }
 
     public function approve(Request $request): void

@@ -62,6 +62,24 @@ class View
     }
 
     /**
+     * Render a component (like csrf_input) directly as a string.
+     */
+    public static function component(string $name, array $data = []): string
+    {
+        $file = VIEW_PATH . '/components/' . ltrim($name, '/') . '.php';
+
+        if (!is_file($file)) {
+            throw new RuntimeException("Component not found: {$file}");
+        }
+
+        extract($data, EXTR_SKIP);
+
+        ob_start();
+        require $file;
+        return ob_get_clean() ?: '';
+    }
+
+    /**
      * XSS-safe output helper. Use e($var) in every view.
      */
     public static function e(mixed $value): string

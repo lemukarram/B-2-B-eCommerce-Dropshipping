@@ -1,6 +1,6 @@
-<?php $pageTitle = 'Sellers'; ?>
+<?php $pageTitle = 'Sellers & Stores'; ?>
 <div class="d-flex justify-content-between align-items-center mb-4">
-    <h4>Sellers</h4>
+    <h4>Sellers & Stores</h4>
 </div>
 
 <ul class="nav nav-tabs mb-3">
@@ -19,6 +19,7 @@
             <thead class="table-light">
                 <tr>
                     <th>Name</th>
+                    <th>Role</th>
                     <th>Business</th>
                     <th>Email</th>
                     <th>City</th>
@@ -30,6 +31,7 @@
                 <?php foreach ($sellers as $s): ?>
                 <tr>
                     <td class="fw-medium"><?= e($s['name']) ?></td>
+                    <td><span class="badge bg-<?= $s['role'] === 'seller' ? 'primary' : 'info' ?>"><?= ucfirst(e($s['role'])) ?></span></td>
                     <td><?= e($s['business_name'] ?? '—') ?></td>
                     <td><?= e($s['email']) ?></td>
                     <td><?= e($s['city'] ?? '—') ?></td>
@@ -46,7 +48,7 @@
                 </tr>
                 <?php endforeach; ?>
                 <?php if (empty($sellers)): ?>
-                <tr><td colspan="6" class="text-center text-muted py-4">No sellers found.</td></tr>
+                <tr><td colspan="7" class="text-center text-muted py-4">No users found.</td></tr>
                 <?php endif; ?>
             </tbody>
         </table>

@@ -30,7 +30,7 @@
     </div>
 </nav>
 
-<main class="py-5">
+<main class="py-5 animate-fade-in">
     <div class="container">
         <?php include VIEW_PATH . '/components/flash.php'; ?>
         <?= $content ?>

@@ -27,7 +27,7 @@ abstract class BaseModel
         return Database::getInstance();
     }
 
-    protected static function query(string $sql, array $bindings = []): PDOStatement
+    public static function query(string $sql, array $bindings = []): PDOStatement
     {
         $stmt = static::db()->prepare($sql);
         $stmt->execute($bindings);
