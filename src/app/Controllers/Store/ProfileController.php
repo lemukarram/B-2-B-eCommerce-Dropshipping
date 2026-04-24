@@ -21,7 +21,7 @@ class ProfileController
         $pdo    = Database::getInstance();
 
         $profile = $pdo->prepare(
-            'SELECT u.*, sp.business_name, sp.address, sp.city, sp.province
+            'SELECT u.*, sp.business_name, sp.address, sp.city, sp.province, sp.logo
              FROM users u
              LEFT JOIN seller_profiles sp ON sp.user_id = u.id
              WHERE u.id = ? LIMIT 1'
@@ -46,8 +46,9 @@ class ProfileController
         $userId = Auth::id();
 
         $v = new Validator($request->all(), [
-            'name'  => 'required|max:150',
-            'phone' => 'required|regex:/^03[0-9]{9}$/',
+            'name'          => 'required|max:150',
+            'phone'         => 'required|regex:/^03[0-9]{9}$/',
+            'business_name' => 'required|max:200',
         ]);
 
         if ($v->fails()) {
@@ -55,12 +56,47 @@ class ProfileController
             Response::redirect('/store/profile');
         }
 
+        $pdo = Database::getInstance();
+
+        // Update User basic info
         User::update($userId, [
             'name'  => trim($request->post('name')),
             'phone' => trim($request->post('phone')),
         ]);
 
-        Session::flash('success', 'Profile updated.');
+        // Handle Logo Upload
+        $logoPath = $request->post('existing_logo');
+        if (isset($_FILES['logo']) && $_FILES['logo']['error'] === UPLOAD_ERR_OK) {
+            try {
+                $fileService = new \App\Services\FileUploadService();
+                $logoPath = $fileService->uploadImage($_FILES['logo'], 'users');
+            } catch (\Exception $e) {
+                Session::flashErrors(['logo' => [$e->getMessage()]]);
+                Response::redirect('/store/profile');
+            }
+        }
+
+        // Update or Create Seller Profile
+        $stmt = $pdo->prepare(
+            "INSERT INTO seller_profiles (user_id, business_name, address, city, province, logo)
+             VALUES (?, ?, ?, ?, ?, ?)
+             ON DUPLICATE KEY UPDATE 
+                business_name = VALUES(business_name),
+                address       = VALUES(address),
+                city          = VALUES(city),
+                province      = VALUES(province),
+                logo          = VALUES(logo)"
+        );
+        $stmt->execute([
+            $userId,
+            trim($request->post('business_name')),
+            trim($request->post('address', '')),
+            trim($request->post('city', '')),
+            trim($request->post('province', '')),
+            $logoPath
+        ]);
+
+        Session::flash('success', 'Profile updated successfully.');
         Response::redirect('/store/profile');
     }
 

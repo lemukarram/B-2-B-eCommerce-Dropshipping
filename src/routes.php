@@ -90,12 +90,14 @@ $router->get( '/admin/sellers/:id',              [AdminSeller::class,    'show']
 $router->post('/admin/sellers/:id/approve',      [AdminSeller::class,    'approve'], ['admin', 'csrf']);
 $router->post('/admin/sellers/:id/suspend',      [AdminSeller::class,    'suspend'], ['admin', 'csrf']);
 $router->post('/admin/sellers/:id/role',         [AdminSeller::class,    'updateRole'], ['admin', 'csrf']);
+$router->post('/admin/sellers/:id/payout',       [AdminSeller::class,    'payout'],  ['admin', 'csrf']);
 
 // Stores
 $router->get( '/admin/stores',                   [App\Controllers\Admin\StoreController::class, 'index'],   ['admin']);
 $router->get( '/admin/stores/:id',               [App\Controllers\Admin\StoreController::class, 'show'],    ['admin']);
 $router->post('/admin/stores/:id/approve',       [App\Controllers\Admin\StoreController::class, 'approve'], ['admin', 'csrf']);
 $router->post('/admin/stores/:id/suspend',       [App\Controllers\Admin\StoreController::class, 'suspend'], ['admin', 'csrf']);
+$router->post('/admin/stores/:id/payout',        [App\Controllers\Admin\StoreController::class, 'payout'],  ['admin', 'csrf']);
 
 // Payments
 $router->get( '/admin/payments',                 [AdminPayment::class,   'index'],   ['admin']);

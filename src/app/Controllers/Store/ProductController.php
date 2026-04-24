@@ -57,9 +57,19 @@ class ProductController
 
         $images = Product::images($product['id']);
 
+        // Fetch store profile for marketing prompts
+        $storeProfile = Product::query(
+            "SELECT u.name, u.phone, sp.business_name, sp.logo 
+             FROM users u 
+             LEFT JOIN seller_profiles sp ON sp.user_id = u.id 
+             WHERE u.id = ? LIMIT 1",
+            [Auth::id()]
+        )->fetch();
+
         View::render('store/products/show', [
-            'product' => $product,
-            'images'  => $images,
+            'product'      => $product,
+            'images'       => $images,
+            'storeProfile' => $storeProfile,
         ], 'store');
     }
 }

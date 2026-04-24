@@ -36,19 +36,11 @@ class WalletService
 
         if ($parentSellerId) {
             // Store Order: Split profit
-            $storeProfit = bcsub(
-                bcsub($order['total_selling_price'], $order['total_wholesale_price'], 2),
-                $order['delivery_charge'],
-                2
-            );
+            $storeProfit = bcsub($order['total_selling_price'], $order['total_wholesale_price'], 2);
             $sellerProfit = bcsub($order['total_wholesale_price'], $order['total_base_price'], 2);
         } else {
             // Direct Seller Order: All profit to seller
-            $sellerProfit = bcsub(
-                bcsub($order['total_selling_price'], $order['total_base_price'], 2),
-                $order['delivery_charge'],
-                2
-            );
+            $sellerProfit = bcsub($order['total_selling_price'], $order['total_base_price'], 2);
         }
 
         // Clamp to zero

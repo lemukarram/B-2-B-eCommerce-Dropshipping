@@ -67,12 +67,61 @@ class SellerController
         $wallet       = UserWallet::findByUserId($id);
         $ordersResult = Order::forUser($id, 1, 10);
 
+        // Fetch transactions for ledger
+        $transactions = $pdo->prepare(
+            "SELECT * FROM wallet_transactions WHERE user_id = ? ORDER BY created_at DESC LIMIT 50"
+        );
+        $transactions->execute([$id]);
+
         View::render('admin/sellers/show', [
-            'seller'  => $seller,
-            'wallet'  => $wallet,
-            'orders'  => $ordersResult['data'],
-            'success' => \Core\Session::getFlash('success'),
+            'seller'       => $seller,
+            'wallet'       => $wallet,
+            'orders'       => $ordersResult['data'],
+            'transactions' => $transactions->fetchAll(),
+            'success'      => \Core\Session::getFlash('success'),
+            'errors'       => \Core\Session::errors(),
         ], 'admin');
+    }
+
+    public function payout(Request $request): void
+    {
+        $id     = (int)$request->param('id');
+        $amount = $request->post('amount');
+        $note   = $request->post('description', 'Manual Payout');
+
+        if (!$amount || (float)$amount <= 0) {
+            Session::flashErrors(['amount' => ['Please enter a valid amount.']]);
+            Response::redirect('/admin/sellers/' . $id);
+        }
+
+        try {
+            $pdo = Database::getInstance();
+            $pdo->beginTransaction();
+
+            $wallet = $pdo->query("SELECT * FROM user_wallets WHERE user_id = {$id} FOR UPDATE")->fetch();
+            if (!$wallet || bccomp($wallet['balance'], (string)$amount, 2) < 0) {
+                throw new \RuntimeException('Insufficient balance in wallet.');
+            }
+
+            $newBalance = bcsub($wallet['balance'], (string)$amount, 2);
+            $newWithdrawn = bcadd($wallet['total_withdrawn'], (string)$amount, 2);
+
+            $pdo->prepare("UPDATE user_wallets SET balance = ?, total_withdrawn = ? WHERE user_id = ?")
+                ->execute([$newBalance, $newWithdrawn, $id]);
+
+            $pdo->prepare(
+                "INSERT INTO wallet_transactions (user_id, type, amount, balance_after, description, created_by)
+                 VALUES (?, 'withdrawal', ?, ?, ?, ?)"
+            )->execute([$id, $amount, $newBalance, $note, \Core\Auth::id()]);
+
+            $pdo->commit();
+            Session::flash('success', 'Payout processed successfully.');
+        } catch (\Exception $e) {
+            if ($pdo->inTransaction()) $pdo->rollBack();
+            Session::flashErrors(['amount' => [$e->getMessage()]]);
+        }
+
+        Response::redirect('/admin/sellers/' . $id);
     }
 
     public function updateRole(Request $request): void

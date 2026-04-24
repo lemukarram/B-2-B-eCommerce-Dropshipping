@@ -1,0 +1,1 @@
+ALTER TABLE `seller_profiles` ADD COLUMN `logo` VARCHAR(255) NULL DEFAULT NULL AFTER `business_name`;
