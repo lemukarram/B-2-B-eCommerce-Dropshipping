@@ -8,6 +8,7 @@ use App\Models\User;
 use App\Models\UserWallet;
 use App\Models\Order;
 use Core\Database;
+use Core\Auth;
 use Core\Request;
 use Core\Response;
 use Core\Session;
@@ -112,7 +113,7 @@ class SellerController
             $pdo->prepare(
                 "INSERT INTO wallet_transactions (user_id, type, amount, balance_after, description, created_by)
                  VALUES (?, 'withdrawal', ?, ?, ?, ?)"
-            )->execute([$id, $amount, $newBalance, $note, \Core\Auth::id()]);
+            )->execute([$id, $amount, $newBalance, $note, Auth::id()]);
 
             $pdo->commit();
             Session::flash('success', 'Payout processed successfully.');

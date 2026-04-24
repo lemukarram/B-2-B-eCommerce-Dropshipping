@@ -8,6 +8,7 @@ use App\Models\User;
 use App\Models\UserWallet;
 use App\Models\Order;
 use Core\Database;
+use Core\Auth;
 use Core\Request;
 use Core\Response;
 use Core\Session;
