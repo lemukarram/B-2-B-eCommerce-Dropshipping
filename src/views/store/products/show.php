@@ -81,7 +81,7 @@
 
 <!-- Marketing Assets Modal -->
 <div class="modal fade" id="marketingAssetsModal" tabindex="-1" aria-hidden="true">
-    <div class="modal-dialog modal-lg modal-dialog-centered">
+    <div class="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable">
         <div class="modal-content border-0 shadow-lg rounded-4">
             <div class="modal-header border-0 p-4 pb-0">
                 <h5 class="modal-title fw-bold">Social Media Marketing Prompts</h5>
@@ -94,8 +94,10 @@
                 $storeName = $storeProfile['business_name'] ?: $storeProfile['name'];
                 $storeLogo = $storeProfile['logo'] ? 'http://' . $_SERVER['HTTP_HOST'] . $storeProfile['logo'] : 'YOUR_STORE_LOGO_URL';
                 $productImg = !empty($images) ? 'http://' . $_SERVER['HTTP_HOST'] . $images[0]['image_path'] : '';
-                $productName = e($product['title']);
-                $productPrice = 'Rs. ' . number_format($product['wholesale_price'] * 1.25, 0); // Suggesting a 25% margin
+                
+                // Decode entities for AI prompts so they are "clean" for copy-pasting
+                $productName = htmlspecialchars_decode(e($product['title']));
+                $productPrice = 'Rs. ' . number_format($product['wholesale_price'] * 1.25, 0); 
                 $storePhone = e($storeProfile['phone']);
                 
                 $promptTemplates = [
@@ -162,6 +164,17 @@ function copyPrompt(index) {
         btn.classList.replace('btn-success', 'btn-outline-primary');
     }, 2000);
 }
+
+/**
+ * FIX: Modal Backdrop issues.
+ * Move the modal to document.body to escape the 'animate-fade-in' stacking context.
+ */
+document.addEventListener('DOMContentLoaded', function() {
+    const modal = document.getElementById('marketingAssetsModal');
+    if (modal) {
+        document.body.appendChild(modal);
+    }
+});
 </script>
 
 <style>
