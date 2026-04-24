@@ -35,10 +35,12 @@ class PaymentController
 
         $stmt = $pdo->prepare(
             "SELECT pr.*, u.name AS seller_name, u.email AS seller_email,
-                    spm.method_type, spm.account_title, spm.account_number, spm.bank_name
+                    spm.method_type, spm.account_title, spm.account_number, spm.bank_name,
+                    uw.balance AS wallet_balance
              FROM payment_requests pr
              JOIN users u ON u.id = pr.seller_id
              JOIN seller_payment_methods spm ON spm.id = pr.payment_method_id
+             LEFT JOIN user_wallets uw ON uw.user_id = u.id
              WHERE pr.status = ?
              ORDER BY pr.created_at DESC
              LIMIT 20 OFFSET ?"

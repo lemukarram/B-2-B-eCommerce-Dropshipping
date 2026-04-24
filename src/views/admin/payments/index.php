@@ -19,6 +19,7 @@
             <thead class="table-light">
                 <tr>
                     <th>Seller</th>
+                    <th>Wallet Balance</th>
                     <th>Method</th>
                     <th>Account</th>
                     <th class="text-end">Amount</th>
@@ -32,6 +33,9 @@
                     <td>
                         <div class="fw-medium"><?= e($r['seller_name']) ?></div>
                         <div class="text-muted small"><?= e($r['seller_email']) ?></div>
+                    </td>
+                    <td>
+                        <div class="fw-bold text-success">PKR <?= number_format($r['wallet_balance'] ?? 0, 2) ?></div>
                     </td>
                     <td><span class="badge bg-secondary"><?= strtoupper(e($r['method_type'])) ?></span></td>
                     <td class="small">

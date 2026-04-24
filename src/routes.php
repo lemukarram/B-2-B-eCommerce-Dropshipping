@@ -168,6 +168,7 @@ $router->get( '/store/orders/:id',               [StoreOrder::class,     'show']
 
 // Wallet
 $router->get( '/store/wallet',                  [StoreDashboard::class,  'wallet'],  ['store']);
+$router->post('/store/wallet/withdraw',         [StoreDashboard::class,  'withdraw'],['store', 'csrf']);
 
 // Profile & Bank
 $router->get( '/store/profile',                 [App\Controllers\Store\ProfileController::class, 'index'], ['store']);
