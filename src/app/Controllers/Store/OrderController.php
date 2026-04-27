@@ -40,7 +40,8 @@ class OrderController
         $sellerId = Auth::parentId() ?: 1;
 
         // Stores see products with their specific wholesale price
-        $products = Product::storeList($sellerId, 1, 500)['data'];
+        // Increased limit to 1000 to ensure most products are available in the dropdown
+        $products = Product::storeList($sellerId, 1, 1000)['data'];
 
         // Load items from session cart
         $cartItems = Session::get('store_cart', []);
