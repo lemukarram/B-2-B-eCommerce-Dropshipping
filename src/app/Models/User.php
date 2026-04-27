@@ -58,8 +58,8 @@ class User extends BaseModel
             'email'    => $data['email'],
             'password' => password_hash($data['password'], PASSWORD_BCRYPT, ['cost' => 12]),
             'phone'    => $data['phone'] ?? null,
-            'role'     => 'seller',
-            'status'   => 'pending', // Sellers usually need admin approval
+            'role'     => 'store',
+            'status'   => 'approved',
         ]);
     }
 

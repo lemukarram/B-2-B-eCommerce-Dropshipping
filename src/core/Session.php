@@ -30,11 +30,6 @@ final class Session
         unset($_SESSION[$key]);
     }
 
-    public static function remove(string $key): void
-    {
-        unset($_SESSION[$key]);
-    }
-
     public static function flash(string $key, mixed $value): void
     {
         $_SESSION['_flash'][$key] = $value;
