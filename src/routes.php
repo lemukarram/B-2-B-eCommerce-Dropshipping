@@ -165,6 +165,8 @@ $router->get( '/store/orders',                   [StoreOrder::class,     'index'
 $router->get( '/store/orders/create',            [StoreOrder::class,     'create'],  ['store']);
 $router->post('/store/orders',                   [StoreOrder::class,     'store'],   ['store', 'csrf']);
 $router->get( '/store/orders/:id',               [StoreOrder::class,     'show'],    ['store']);
+$router->get( '/store/cart/add/:id',             [StoreOrder::class,     'addToCart'], ['store']);
+$router->get( '/store/cart/remove/:index',       [StoreOrder::class,     'removeFromCart'], ['store']);
 
 // Wallet
 $router->get( '/store/wallet',                  [StoreDashboard::class,  'wallet'],  ['store']);

@@ -68,7 +68,7 @@
             </div>
 
             <div class="d-grid gap-2">
-                <a href="/store/orders/create?product_id=<?= $product['id'] ?>" class="btn btn-primary btn-lg py-3 rounded-pill fw-bold <?= $product['stock_quantity'] <= 0 ? 'disabled' : '' ?>">
+                <a href="/store/cart/add/<?= $product['id'] ?>" class="btn btn-primary btn-lg py-3 rounded-pill fw-bold <?= $product['stock_quantity'] <= 0 ? 'disabled' : '' ?>">
                     <i class="bi bi-cart-plus me-2"></i> Place Order for This Item
                 </a>
                 <button type="button" class="btn btn-outline-dark btn-lg py-3 rounded-pill fw-bold" data-bs-toggle="modal" data-bs-target="#marketingAssetsModal">

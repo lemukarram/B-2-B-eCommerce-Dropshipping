@@ -42,11 +42,74 @@ class OrderController
         // Stores see products with their specific wholesale price
         $products = Product::storeList($sellerId, 1, 500)['data'];
 
+        // Load items from session cart
+        $cartItems = Session::get('store_cart', []);
+        
+        // If product_id is in GET, add it to cart if not already there
+        $productId = $request->get('product_id');
+        if ($productId) {
+            $productId = (int)$productId;
+            $exists = false;
+            foreach ($cartItems as $item) {
+                if ((int)$item['product_id'] === $productId) {
+                    $exists = true;
+                    break;
+                }
+            }
+            if (!$exists) {
+                $cartItems[] = [
+                    'product_id' => $productId,
+                    'quantity' => 1,
+                    'selling_price' => 0
+                ];
+                Session::set('store_cart', $cartItems);
+            }
+        }
+
         View::render('store/orders/create', [
             'products' => $products,
             'errors'   => Session::errors(),
             'old'      => Session::getFlash('old', []),
+            'cartItems' => $cartItems,
         ], 'store');
+    }
+
+    public function addToCart(Request $request): void
+    {
+        $productId = (int)$request->param('id');
+        $cartItems = Session::get('store_cart', []);
+        
+        $exists = false;
+        foreach ($cartItems as $item) {
+            if ((int)$item['product_id'] === $productId) {
+                $exists = true;
+                break;
+            }
+        }
+        
+        if (!$exists) {
+            $cartItems[] = [
+                'product_id' => $productId,
+                'quantity' => 1,
+                'selling_price' => 0
+            ];
+            Session::set('store_cart', $cartItems);
+        }
+        
+        Response::redirect('/store/orders/create');
+    }
+
+    public function removeFromCart(Request $request): void
+    {
+        $index = (int)$request->param('index');
+        $cartItems = Session::get('store_cart', []);
+        
+        if (isset($cartItems[$index])) {
+            unset($cartItems[$index]);
+            Session::set('store_cart', array_values($cartItems));
+        }
+        
+        Response::redirect('/store/orders/create');
     }
 
     public function store(Request $request): void
@@ -118,6 +181,9 @@ class OrderController
                 'notes'             => trim($request->post('notes', '')),
                 'items'             => $items,
             ], Auth::id(), $sellerId);
+
+            // Clear the cart after successful order
+            Session::remove('store_cart');
 
             Session::flash('success', 'Dropshipping order placed successfully.');
             Response::redirect('/store/orders/' . $orderId);

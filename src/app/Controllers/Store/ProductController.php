@@ -28,6 +28,8 @@ class ProductController
             'products'   => $result['data'],
             'pagination' => $result,
             'categories' => $categories,
+            'baseUrl'    => '/store/products',
+            'queryExtra' => ($categoryId ? '&category_id=' . $categoryId : '') . ($request->get('search') ? '&search=' . urlencode($request->get('search')) : ''),
         ], 'store');
     }
 

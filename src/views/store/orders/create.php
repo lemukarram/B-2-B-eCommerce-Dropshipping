@@ -61,9 +61,9 @@
                     <div class="card border-0 shadow-sm rounded-4 h-100">
                         <div class="card-header bg-white py-3 border-0 d-flex justify-content-between align-items-center">
                             <h5 class="mb-0 fw-bold">Order Items</h5>
-                            <button type="button" class="btn btn-outline-primary btn-sm rounded-pill" onclick="addItem()">
+                            <a href="/store/products" class="btn btn-outline-primary btn-sm rounded-pill">
                                 <i class="bi bi-plus-lg me-1"></i> Add Product
-                            </button>
+                            </a>
                         </div>
                         <div class="card-body">
                             <div id="itemsContainer">
@@ -175,9 +175,15 @@ function addItem() {
     calculateTotals();
 }
 
-function removeItem(btn) {
-    btn.closest('.item-row').remove();
-    calculateTotals();
+function removeItem(btn, index) {
+    if (index !== undefined) {
+        if (confirm('Are you sure you want to remove this item?')) {
+            window.location.href = '/store/cart/remove/' + index;
+        }
+    } else {
+        btn.closest('.item-row').remove();
+        calculateTotals();
+    }
 }
 
 function updateRowPrices(select) {
@@ -251,6 +257,26 @@ window.onload = function() {
             lastRow.querySelector('.qty-input').value = "<?= $item['quantity'] ?>";
             lastRow.querySelector('.selling-input').value = "<?= $item['selling_price'] ?>";
             updateRowPrices(select);
+            
+            // Add remove handler with index
+            const removeBtn = lastRow.querySelector('.remove-btn');
+            removeBtn.setAttribute('onclick', `removeItem(this, <?= $index ?>)`);
+        <?php endforeach; ?>
+    <?php elseif (!empty($cartItems)): ?>
+        <?php foreach ($cartItems as $index => $item): ?>
+            addItem();
+            const lastRow = document.getElementById('itemsContainer').lastElementChild;
+            const select = lastRow.querySelector('.product-select');
+            select.value = "<?= $item['product_id'] ?>";
+            lastRow.querySelector('.qty-input').value = "<?= $item['quantity'] ?>";
+            if ("<?= (float)($item['selling_price'] ?? 0) ?>" > 0) {
+                lastRow.querySelector('.selling-input').value = "<?= $item['selling_price'] ?>";
+            }
+            updateRowPrices(select);
+            
+            // Add remove handler with index
+            const removeBtn = lastRow.querySelector('.remove-btn');
+            removeBtn.setAttribute('onclick', `removeItem(this, <?= $index ?>)`);
         <?php endforeach; ?>
     <?php else: ?>
         addItem();
