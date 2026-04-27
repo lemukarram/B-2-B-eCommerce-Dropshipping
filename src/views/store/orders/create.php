@@ -125,7 +125,7 @@
                 <select name="items[INDEX][product_id]" class="form-select product-select border-0 bg-white shadow-sm rounded-3" required onchange="updateRowPrices(this)">
                     <option value="" data-price="0" data-img="">-- Choose Product --</option>
                     <?php foreach($products as $p): ?>
-                        <option value="<?= $p['id'] ?>" data-price="<?= $p['wholesale_price'] ?>" data-img="<?= e($p['image_path'] ?? '') ?>" <?= (int)($_GET['product_id'] ?? 0) === (int)$p['id'] ? 'selected' : '' ?>>
+                        <option value="<?= $p['id'] ?>" data-price="<?= $p['wholesale_price'] ?>" data-img="<?= e($p['image_path'] ?? '') ?>">
                             <?= e($p['title']) ?> (Wholesale: Rs. <?= number_format($p['wholesale_price'], 2) ?>)
                         </option>
                     <?php endforeach; ?>
@@ -156,7 +156,7 @@
 let itemIndex = 0;
 const deliveryCharge = <?= \App\Models\Setting::deliveryCharge() ?>;
 
-function addItem() {
+function addItem(productId = null) {
     const container = document.getElementById('itemsContainer');
     const template = document.getElementById('itemTemplate').innerHTML;
     const html = template.replace(/INDEX/g, itemIndex);
@@ -165,14 +165,17 @@ function addItem() {
     div.innerHTML = html;
     container.appendChild(div.firstElementChild);
     
-    // If it was added with a pre-selected product (from URL), trigger update
-    const select = container.lastElementChild.querySelector('.product-select');
-    if (select.value) {
+    const lastRow = container.lastElementChild;
+    const select = lastRow.querySelector('.product-select');
+    
+    if (productId) {
+        select.value = productId;
         updateRowPrices(select);
     }
     
     itemIndex++;
     calculateTotals();
+    return lastRow;
 }
 
 function removeItem(btn, index) {
@@ -189,6 +192,8 @@ function removeItem(btn, index) {
 function updateRowPrices(select) {
     const row = select.closest('.item-row');
     const option = select.options[select.selectedIndex];
+    if (!option) return;
+
     const wholesale = parseFloat(option.getAttribute('data-price')) || 0;
     const imgPath = option.getAttribute('data-img');
     
@@ -246,38 +251,36 @@ function calculateTotals() {
     }
 }
 
-// Add first item on load, or re-populate old items
+// Add items on load
 window.onload = function() {
     <?php if (isset($old['items']) && is_array($old['items'])): ?>
         <?php foreach ($old['items'] as $index => $item): ?>
-            addItem();
-            const lastRow = document.getElementById('itemsContainer').lastElementChild;
-            const select = lastRow.querySelector('.product-select');
-            select.value = "<?= $item['product_id'] ?>";
-            lastRow.querySelector('.qty-input').value = "<?= $item['quantity'] ?>";
-            lastRow.querySelector('.selling-input').value = "<?= $item['selling_price'] ?>";
-            updateRowPrices(select);
-            
-            // Add remove handler with index
-            const removeBtn = lastRow.querySelector('.remove-btn');
-            removeBtn.setAttribute('onclick', `removeItem(this, <?= $index ?>)`);
+            (function() {
+                const row = addItem("<?= $item['product_id'] ?>");
+                row.querySelector('.qty-input').value = "<?= $item['quantity'] ?>";
+                row.querySelector('.selling-input').value = "<?= $item['selling_price'] ?>";
+                updateRowPrices(row.querySelector('.product-select'));
+                
+                const removeBtn = row.querySelector('.remove-btn');
+                removeBtn.setAttribute('onclick', `removeItem(this, <?= $index ?>)`);
+            })();
         <?php endforeach; ?>
     <?php elseif (!empty($cartItems)): ?>
         <?php foreach ($cartItems as $index => $item): ?>
-            addItem();
-            const lastRow = document.getElementById('itemsContainer').lastElementChild;
-            const select = lastRow.querySelector('.product-select');
-            select.value = "<?= $item['product_id'] ?>";
-            lastRow.querySelector('.qty-input').value = "<?= $item['quantity'] ?>";
-            if ("<?= (float)($item['selling_price'] ?? 0) ?>" > 0) {
-                lastRow.querySelector('.selling-input').value = "<?= $item['selling_price'] ?>";
-            }
-            updateRowPrices(select);
-            
-            // Add remove handler with index
-            const removeBtn = lastRow.querySelector('.remove-btn');
-            removeBtn.setAttribute('onclick', `removeItem(this, <?= $index ?>)`);
+            (function() {
+                const row = addItem("<?= $item['product_id'] ?>");
+                row.querySelector('.qty-input').value = "<?= $item['quantity'] ?>";
+                if ("<?= (float)($item['selling_price'] ?? 0) ?>" > 0) {
+                    row.querySelector('.selling-input').value = "<?= $item['selling_price'] ?>";
+                }
+                updateRowPrices(row.querySelector('.product-select'));
+                
+                const removeBtn = row.querySelector('.remove-btn');
+                removeBtn.setAttribute('onclick', `removeItem(this, <?= $index ?>)`);
+            })();
         <?php endforeach; ?>
+    <?php elseif (isset($_GET['product_id'])): ?>
+        addItem("<?= (int)$_GET['product_id'] ?>");
     <?php else: ?>
         addItem();
     <?php endif; ?>

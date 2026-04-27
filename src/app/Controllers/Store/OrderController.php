@@ -40,18 +40,20 @@ class OrderController
         $sellerId = Auth::parentId() ?: 1;
 
         // Stores see products with their specific wholesale price
-        $products = Product::storeList($sellerId, 1, 500)['data'];
+        // Increased limit to 1000 to ensure most products are available in the dropdown
+        $products = Product::storeList($sellerId, 1, 1000)['data'];
 
         // Load items from session cart
         $cartItems = Session::get('store_cart', []);
         
         // If product_id is in GET, add it to cart if not already there
+        // This supports both the legacy ?product_id= link and ensures session is updated
         $productId = $request->get('product_id');
         if ($productId) {
             $productId = (int)$productId;
             $exists = false;
             foreach ($cartItems as $item) {
-                if ((int)$item['product_id'] === $productId) {
+                if ((int)($item['product_id'] ?? 0) === $productId) {
                     $exists = true;
                     break;
                 }
@@ -77,11 +79,15 @@ class OrderController
     public function addToCart(Request $request): void
     {
         $productId = (int)$request->param('id');
+        if ($productId <= 0) {
+            Response::redirect('/store/products');
+        }
+
         $cartItems = Session::get('store_cart', []);
         
         $exists = false;
         foreach ($cartItems as $item) {
-            if ((int)$item['product_id'] === $productId) {
+            if ((int)($item['product_id'] ?? 0) === $productId) {
                 $exists = true;
                 break;
             }
@@ -183,7 +189,7 @@ class OrderController
             ], Auth::id(), $sellerId);
 
             // Clear the cart after successful order
-            Session::remove('store_cart');
+            Session::forget('store_cart');
 
             Session::flash('success', 'Dropshipping order placed successfully.');
             Response::redirect('/store/orders/' . $orderId);
